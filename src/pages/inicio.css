@@ -1,0 +1,236 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+
+.sidebar {
+  width: 220px;
+  background-color: #064e3b;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  padding-left: 8px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: rgba(255,255,255,0.7);
+}
+
+.nav-item:hover {
+  background-color: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.nav-item.active {
+  background-color: rgba(255,255,255,0.15);
+  color: white;
+  font-weight: 600;
+}
+
+.contenido {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.topbar { display: none; }
+.topbar-menu { font-size: 1.5rem; cursor: pointer; }
+
+.page-header { margin-bottom: 1.5rem; }
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+
+.card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+.card-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.card-valor {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.card-valor.verde    { color: #059669; }
+.card-valor.amarillo { color: #d97706; }
+.card-valor.rojo     { color: #dc2626; }
+
+.card-hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.resumen-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.resumen-box {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.resumen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.resumen-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.resumen-link {
+  font-size: 0.8rem;
+  color: #059669;
+  cursor: pointer;
+}
+
+.resumen-link:hover { text-decoration: underline; }
+
+.resumen-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.resumen-fila:last-child { border-bottom: none; }
+
+.resumen-nombre {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.resumen-detalle { color: #6b7280; font-size: 0.8rem; }
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-verde    { background-color: #d1fae5; color: #065f46; }
+.badge-amarillo { background-color: #fef3c7; color: #92400e; }
+.badge-rojo     { background-color: #fee2e2; color: #991b1b; }
+
+.menu-mobile { display: none; }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .contenido { padding: 0; }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #064e3b;
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .menu-mobile {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0;
+    width: 75%;
+    height: 100vh;
+    background-color: #1e3a5f;
+    color: white;
+    z-index: 100;
+    padding: 1.5rem 1rem;
+    box-shadow: 4px 0 16px rgba(0,0,0,0.3);
+  }
+
+  .menu-mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    padding: 0 8px;
+  }
+
+  .menu-cerrar { cursor: pointer; font-size: 1.2rem; }
+
+  .menu-mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-header { padding: 0 1rem 1rem; }
+
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 1rem 1rem;
+  }
+
+  .resumen-grid {
+    grid-template-columns: 1fr;
+    padding: 0 1rem 1rem;
+  }
+}
