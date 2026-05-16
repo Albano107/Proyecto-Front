@@ -9,6 +9,8 @@ Frontend desarrollado con **React + Vite** para la plataforma de monitoreo proac
 - Navegación por estado (sin React Router)
 
 ## 📂 Estructura
+
+```
 src/
 ├── pages/
 │   ├── login.jsx / login.css
@@ -18,6 +20,7 @@ src/
 │   └── usuarios.jsx / usuarios.css
 ├── App.jsx
 └── main.jsx
+```
 ## 🚀 Instalación
 
 ```bash
