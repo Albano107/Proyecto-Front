@@ -1,16 +1,55 @@
-# React + Vite
+# Proyecto Frontend - Plataforma de Monitoreo de Productos en Góndola
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend desarrollado con **React + Vite** para la plataforma de monitoreo proactivo de productos en góndola. Permite visualizar el estado del inventario, gestionar usuarios y consultar reportes de mermas.
 
-Currently, two official plugins are available:
+## 🛠️ Tecnologías
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React + Vite
+- CSS puro (sin frameworks)
+- Navegación por estado (sin React Router)
 
-## React Compiler
+## 📂 Estructura
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```
+src/
+├── pages/
+│   ├── login.jsx / login.css
+│   ├── inicio.jsx / inicio.css
+│   ├── inventario.jsx / inventario.css
+│   ├── reportes.jsx / reportes.css
+│   └── usuarios.jsx / usuarios.css
+├── App.jsx
+└── main.jsx
+```
+## 🚀 Instalación
 
-## Expanding the ESLint configuration
+```bash
+git clone https://github.com/Albano107/Proyecto-Front
+cd Proyecto-Front
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## ✅ Lo que tiene
+
+- Pantalla de login con email/contraseña y PIN
+- Inicio con resumen general del sistema
+- Inventario con semáforo visual (verde/amarillo/rojo) y toggle por productos/unidades
+- Reportes de mermas con historial de retiros
+- Gestión de usuarios con alta y baja de cuentas
+- Diseño responsive mobile-first con menú hamburguesa
+
+## 🔧 Lo que falta
+
+- Conexión al backend (actualmente usa datos mockeados)
+- Autenticación real con JWT
+- Control de acceso por rol (admin/operario)
+- Exportación de reportes a Excel y PDF
+- Lector de código de barras
+- Dashboard con gráficos estadísticos
+- Dockerización
+
+## 🔗 Repositorios relacionados
+
+- Backend: [Albano107/Proyecto-Backend](https://github.com/Albano107/Proyecto-Backend)
+- Base de datos: [Albano107/Proyecto-bd](https://github.com/Albano107/Proyecto-bd)
