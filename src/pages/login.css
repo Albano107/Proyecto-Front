@@ -170,6 +170,16 @@
   background-color: #f0fdf4;
 }
 
+.login-error {
+  color: #991b1b;
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
 @media (max-width: 600px) {
   .login-card {
     flex-direction: column;
@@ -206,3 +216,4 @@
     display: none;
   }
 }
+
