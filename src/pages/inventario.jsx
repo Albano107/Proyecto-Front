@@ -1,17 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "../api/axios";
 import "./inventario.css";
 
-const productos = [
-  { id: 1, nombre: "Leche La Serenísima", vencimiento: "2026-05-17", cantidad: 10, estado: "rojo" },
-  { id: 2, nombre: "Yogur Ser Frutilla", vencimiento: "2026-05-25", cantidad: 5, estado: "amarillo" },
-  { id: 3, nombre: "Queso Cremoso", vencimiento: "2026-06-10", cantidad: 8, estado: "verde" },
-  { id: 4, nombre: "Manteca Sancor", vencimiento: "2026-05-18", cantidad: 3, estado: "rojo" },
-  { id: 5, nombre: "Crema de Leche", vencimiento: "2026-06-20", cantidad: 12, estado: "verde" },
-];
 
 export default function Inventario({ onNavegar }) {
   const [modo, setModo] = useState("productos");
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [productos, setProductos] = useState([]);
+
+  useEffect(() => {
+
+  const cargarInventario = async () => {
+
+    try {
+
+      const response = await axios.get("/inventario");
+
+      const datos = response.data.map(item => ({
+        id: item.id_inventario,
+        nombre: item.producto,
+        vencimiento: item.fecha_vencimiento.split("T")[0],
+        cantidad: item.cantidad,
+        estado: item.estado.toLowerCase()
+      }));
+
+      setProductos(datos);
+
+    } catch (error) {
+
+      console.error("Error cargando inventario:", error);
+
+    }
+
+  };
+
+  cargarInventario();
+
+}, []);
 
   // Por productos
   const totalP = productos.length;
