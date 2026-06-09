@@ -1,15 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "../api/axios";
 import "./reportes.css";
-
-const retiros = [
-  { id: 1, producto: "Leche La Serenísima", cantidad: 10, motivo: "Vencimiento", fecha: "2026-05-16", usuario: "María Operaria" },
-  { id: 2, producto: "Manteca Sancor", cantidad: 3, motivo: "Vencimiento", fecha: "2026-05-15", usuario: "Carlos Admin" },
-  { id: 3, producto: "Yogur Ser Frutilla", cantidad: 5, motivo: "Vencimiento", fecha: "2026-05-14", usuario: "María Operaria" },
-  { id: 4, producto: "Crema de Leche", cantidad: 2, motivo: "Vencimiento", fecha: "2026-05-13", usuario: "Carlos Admin" },
-];
 
 export default function Reportes({ onNavegar }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [retiros, setRetiros] = useState([]);
+
+  useEffect(() => {
+    const cargarRetiros = async () => {
+      try {
+        const response = await axios.get("/retiros");
+        setRetiros(response.data);
+      } catch (error) {
+        console.error("Error cargando retiros:", error);
+      }
+    };
+
+    cargarRetiros();
+  }, []);
 
   return (
     <div className="layout">
@@ -30,11 +38,12 @@ export default function Reportes({ onNavegar }) {
             <span>GóndolaPro</span>
             <span onClick={() => setMenuAbierto(false)} className="menu-cerrar">✕</span>
           </div>
+
           <nav className="menu-mobile-nav">
             <a className="nav-item" onClick={() => onNavegar("inicio")}>🏠 Inicio</a>
             <a className="nav-item" onClick={() => onNavegar("inventario")}>📦 Inventario</a>
             <a className="nav-item active">📊 Reportes</a>
-           <a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
+            <a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
           </nav>
         </div>
       )}
@@ -59,15 +68,25 @@ export default function Reportes({ onNavegar }) {
             <span>Usuario</span>
           </div>
 
-          {retiros.map(r => (
-            <div className="tabla-fila" key={r.id}>
-              <span className="producto-nombre">{r.producto}</span>
-              <span>{r.cantidad} u.</span>
-              <span>{r.motivo}</span>
-              <span>{r.fecha}</span>
-              <span>{r.usuario}</span>
+          {retiros.length === 0 ? (
+            <div className="tabla-fila">
+              <span>No hay retiros registrados</span>
+              <span>-</span>
+              <span>-</span>
+              <span>-</span>
+              <span>-</span>
             </div>
-          ))}
+          ) : (
+            retiros.map((r) => (
+              <div className="tabla-fila" key={r.id_retiro}>
+                <span className="producto-nombre">{r.producto}</span>
+                <span>{r.cantidad} u.</span>
+                <span>{r.motivo}</span>
+                <span>{r.fecha_retiro?.split("T")[0]}</span>
+                <span>{r.usuario}</span>
+              </div>
+            ))
+          )}
         </div>
 
       </div>
