@@ -321,3 +321,437 @@
     gap: 4px;
   }
 }
+
+.tabla-header-extendido,
+.tabla-fila-extendida {
+  grid-template-columns: 2fr 1fr 1fr 1fr 2fr;
+}
+ 
+/* Grupo de botones en la columna acciones */
+.acciones-grupo {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+ 
+/* Botón editar */
+.btn-editar {
+  background-color: #f0a500;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-editar:hover {
+  background-color: #d4920a;
+}
+ 
+/* Botón eliminar (en la tabla) */
+.btn-eliminar {
+  background-color: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-eliminar:hover {
+  background-color: #c53030;
+}
+ 
+/* Botón eliminar de confirmación (modal) */
+.btn-eliminar-confirm {
+  background-color: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-eliminar-confirm:hover {
+  background-color: #c53030;
+}
+.btn-eliminar-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+ 
+/* Botón cancelar */
+.btn-cancelar {
+  background-color: transparent;
+  color: #666;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-cancelar:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+ 
+/* ── Modal overlay ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+ 
+/* Caja del modal */
+.modal-caja {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+ 
+/* Header del modal */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e8e8e8;
+}
+.modal-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+.modal-cerrar {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+.modal-cerrar:hover {
+  color: #333;
+}
+ 
+/* Body del modal */
+.modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+ 
+/* Texto de confirmación */
+.modal-texto-confirmar {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.5;
+  margin: 0;
+}
+ 
+/* Footer del modal */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e8e8e8;
+}
+ 
+/* ── Formulario ── */
+.form-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.form-input {
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  color: #222;
+  background: #fafafa;
+  transition: border 0.2s;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.form-input:focus {
+  border-color: #5a7af0;
+  background: #fff;
+}
+.form-error {
+  font-size: 0.83rem;
+  color: #e53e3e;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tabla-header-extendido,
+.tabla-fila-extendida {
+  grid-template-columns: 2fr 1fr 1fr 1fr 2fr;
+}
+ 
+/* Grupo de botones en la columna acciones */
+.acciones-grupo {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+ 
+/* Botón editar */
+.btn-editar {
+  background-color: #f0a500;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-editar:hover {
+  background-color: #d4920a;
+}
+ 
+/* Botón eliminar (en la tabla) */
+.btn-eliminar {
+  background-color: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-eliminar:hover {
+  background-color: #c53030;
+}
+ 
+/* Botón eliminar de confirmación (modal) */
+.btn-eliminar-confirm {
+  background-color: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-eliminar-confirm:hover {
+  background-color: #c53030;
+}
+.btn-eliminar-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+ 
+/* Botón cancelar */
+.btn-cancelar {
+  background-color: transparent;
+  color: #666;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-cancelar:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+ 
+/* ── Modal overlay ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+ 
+/* Caja del modal */
+.modal-caja {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+ 
+/* Header del modal */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e8e8e8;
+}
+.modal-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+.modal-cerrar {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+.modal-cerrar:hover {
+  color: #333;
+}
+ 
+/* Body del modal */
+.modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+ 
+/* Texto de confirmación */
+.modal-texto-confirmar {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.5;
+  margin: 0;
+}
+ 
+/* Footer del modal */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e8e8e8;
+}
+ 
+/* ── Formulario ── */
+.form-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.form-input {
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  color: #222;
+  background: #fafafa;
+  transition: border 0.2s;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.form-input:focus {
+  border-color: #5a7af0;
+  background: #fff;
+}
+.form-error {
+  font-size: 0.83rem;
+  color: #e53e3e;
+  font-weight: 600;
+  margin: 0;
+}
+ 
+/* ── Autocomplete ── */
+.autocomplete-wrap {
+  position: relative;
+}
+ 
+.autocomplete-lista {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 2000;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+}
+ 
+.autocomplete-item {
+  padding: 9px 14px;
+  font-size: 0.88rem;
+  color: #222;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+ 
+.autocomplete-item:hover,
+.autocomplete-item--activo {
+  background: #f0f4ff;
+  color: #3a5bd9;
+}
+ 
+.autocomplete-item--vacio {
+  color: #aaa;
+  cursor: default;
+  font-style: italic;
+}
+.autocomplete-item--vacio:hover {
+  background: transparent;
+  color: #aaa;
+}
