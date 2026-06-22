@@ -16,14 +16,9 @@ function AutoComplete({ label, opciones, valorId, valorTexto, onSeleccionar, pla
 
   // Cerrar al hacer click afuera
   useEffect(() => {
-    const handler = (e) => {
-      if (contenedor.current && !contenedor.current.contains(e.target)) {
-        setAbierto(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  cargarInventario();
+  cargarProductosYSucursales();
+}, [sucursalActiva]);
 
   const filtradas = opciones.filter((o) =>
     o.label.toLowerCase().includes(texto.toLowerCase())
@@ -108,7 +103,10 @@ function Modal({ titulo, onCerrar, children }) {
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
-export default function Inventario({ onNavegar }) {
+export default function Inventario({ onNavegar, usuario }) {
+  const [sucursalActiva, setSucursalActiva] = useState(
+    usuario?.rol === "Operario" ? usuario.id_sucursal : null
+  );
   const [modo, setModo] = useState("productos");
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [productos, setProductos] = useState([]);
@@ -144,21 +142,22 @@ export default function Inventario({ onNavegar }) {
   const [error, setError]       = useState("");
 
   // ── Carga de datos ──────────────────────────────────────────────────────────
-  const cargarInventario = async () => {
-    try {
-      const response = await axios.get("/inventario");
-      const datos = response.data.map((item) => ({
-        id: item.id_inventario,
-        nombre: item.producto,
-        vencimiento: item.fecha_vencimiento.split("T")[0],
-        cantidad: item.cantidad,
-        estado: item.estado.toLowerCase(),
-      }));
-      setProductos(datos);
-    } catch (err) {
-      console.error("Error cargando inventario:", err);
-    }
-  };
+const cargarInventario = async () => {
+  try {
+    const url = sucursalActiva ? `/inventario?id_sucursal=${sucursalActiva}` : "/inventario";
+    const response = await axios.get(url);
+    const datos = response.data.map((item) => ({
+      id: item.id_inventario,
+      nombre: item.producto,
+      vencimiento: item.fecha_vencimiento.split("T")[0],
+      cantidad: item.cantidad,
+      estado: item.estado.toLowerCase(),
+    }));
+    setProductos(datos);
+  } catch (err) {
+    console.error("Error cargando inventario:", err);
+  }
+};
 
   const cargarProductosYSucursales = async () => {
     try {
@@ -323,7 +322,8 @@ export default function Inventario({ onNavegar }) {
           <a className="nav-item" onClick={() => onNavegar("inicio")}>🏠 Inicio</a>
           <a className="nav-item active">📦 Inventario</a>
           <a className="nav-item" onClick={() => onNavegar("reportes")}>📊 Reportes</a>
-          <a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
+          {usuario?.rol !== "Operario" && (<a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
+)}
         </nav>
       </div>
 
@@ -352,19 +352,45 @@ export default function Inventario({ onNavegar }) {
 
         {/* Header de página */}
         <div className="page-header">
-          <h1 className="page-title">Inventario</h1>
-          <div className="header-actions">
-            <button
-              className="btn-modo"
-              onClick={() => setModo(modo === "productos" ? "unidades" : "productos")}
-            >
-              Ver por {modo === "productos" ? "unidades" : "productos"}
-            </button>
-            <button className="btn-agregar" onClick={abrirModalNuevo}>
-              + Nuevo producto
-            </button>
-          </div>
-        </div>
+          <div className="title-sucursales">
+    <h1 className="page-title">Inventario</h1>
+    <div className="sucursal-tabs">
+      {usuario?.rol !== "Operario" && (
+        <button
+          className={`btn-sucursal ${!sucursalActiva ? "activo" : ""}`}
+          onClick={() => setSucursalActiva(null)}
+        >
+          Todas
+        </button>
+      )}
+      {listaSucursales.map((s) => (
+        <button
+          key={s.id_sucursal}
+          className={`btn-sucursal ${sucursalActiva === s.id_sucursal ? "activo" : ""}`}
+          onClick={() => {
+            if (usuario?.rol !== "Operario") setSucursalActiva(s.id_sucursal);
+          }}
+          disabled={usuario?.rol === "Operario" && s.id_sucursal !== usuario.id_sucursal}
+        >
+          {s.nombre}
+        </button>
+      ))}
+    </div>
+  </div>
+  <div className="header-actions">
+    <button
+      className="btn-modo"
+      onClick={() => setModo(modo === "productos" ? "unidades" : "productos")}
+    >
+      Ver por {modo === "productos" ? "unidades" : "productos"}
+    </button>
+    {usuario?.rol !== "Operario" && (
+      <button className="btn-agregar" onClick={abrirModalNuevo}>
+        + Nuevo producto
+      </button>
+    )}
+  </div>
+</div>
 
         {/* Cards */}
         <div className="cards-grid">
