@@ -172,10 +172,19 @@ const cargarInventario = async () => {
     }
   };
 
-  useEffect(() => {
-    cargarInventario();
-    cargarProductosYSucursales();
-  }, []);
+useEffect(() => {
+  cargarProductosYSucursales();
+}, []);
+
+useEffect(() => {
+  if (usuario?.rol === "Operario" && usuario?.id_sucursal) {
+    setSucursalActiva(usuario.id_sucursal);
+  }
+}, [usuario]);
+
+useEffect(() => {
+  cargarInventario();
+}, [sucursalActiva]);
 
   // ── Acciones existentes ─────────────────────────────────────────────────────
   const retirarProducto = async (producto) => {

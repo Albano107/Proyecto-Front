@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "../api/axios";
 import "./inicio.css";
 
-export default function Inicio({ onNavegar }) {
+export default function Inicio({ onNavegar, usuario }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   const [dashboard, setDashboard] = useState({
@@ -39,16 +39,11 @@ export default function Inicio({ onNavegar }) {
         <div className="sidebar-logo">GóndolaPro</div>
 
         <nav className="sidebar-nav">
-          <a className="nav-item active">🏠 Inicio</a>
-          <a className="nav-item" onClick={() => onNavegar("inventario")}>
-            📦 Inventario
-          </a>
-          <a className="nav-item" onClick={() => onNavegar("reportes")}>
-            📊 Reportes
-          </a>
-          <a className="nav-item" onClick={() => onNavegar("usuarios")}>
-            👤 Usuarios
-          </a>
+          <a className="nav-item" active>🏠 Inicio</a>
+          <a className="nav-item" onClick={() => onNavegar("inventario")}>📦 Inventario</a>
+          <a className="nav-item" onClick={() => onNavegar("reportes")}>📊 Reportes</a>
+          {usuario?.rol !== "Operario" && (<a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
+)}
         </nav>
       </div>
 

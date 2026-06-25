@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "../api/axios";
 import "./reportes.css";
 
-export default function Reportes({ onNavegar }) {
+export default function Reportes({ onNavegar, usuario }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [retiros, setRetiros] = useState([]);
 
@@ -28,7 +28,8 @@ export default function Reportes({ onNavegar }) {
           <a className="nav-item" onClick={() => onNavegar("inicio")}>🏠 Inicio</a>
           <a className="nav-item" onClick={() => onNavegar("inventario")}>📦 Inventario</a>
           <a className="nav-item active">📊 Reportes</a>
-          <a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
+          {usuario?.rol !== "Operario" && (<a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
+)}
         </nav>
       </div>
 
@@ -43,7 +44,10 @@ export default function Reportes({ onNavegar }) {
             <a className="nav-item" onClick={() => onNavegar("inicio")}>🏠 Inicio</a>
             <a className="nav-item" onClick={() => onNavegar("inventario")}>📦 Inventario</a>
             <a className="nav-item active">📊 Reportes</a>
-            <a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
+            <a className="nav-item" onClick={() => onNavegar("reportes")}>📊 Reportes</a>
+          <a className="nav-item" onClick={() => onNavegar("reportes")}>📊 Reportes</a>
+          {usuario?.rol !== "Operario" && (<a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
+)}
           </nav>
         </div>
       )}
