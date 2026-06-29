@@ -157,6 +157,7 @@ export default function Inventario({ onNavegar, usuario }) {
   const [modalNuevo, setModalNuevo] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const [modalEliminar, setModalEliminar] = useState(false);
+  const [modalRetiro, setModalRetiro] = useState(false);
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
 
   // Estado del formulario de nuevo producto
@@ -174,6 +175,12 @@ export default function Inventario({ onNavegar, usuario }) {
   const [formEditar, setFormEditar] = useState({
     fecha_vencimiento: "",
     cantidad: "",
+  });
+
+  // Estado del formulario de retiro
+  const [formRetiro, setFormRetiro] = useState({
+    cantidad: "",
+    motivo: "Vencimiento",
   });
 
   const [cargando, setCargando] = useState(false);
@@ -256,35 +263,60 @@ export default function Inventario({ onNavegar, usuario }) {
     cargarInventario();
   }, [sucursalActiva, pagina, limite]);
 
-  // ── Acciones existentes ─────────────────────────────────────────────────────
-  const retirarProducto = async (producto) => {
-    const cantidad = Number(prompt(`Cantidad a retirar de ${producto.nombre}:`));
+  // ── Retirar producto ────────────────────────────────────────────────────────
+  const abrirModalRetiro = (producto) => {
+    setItemSeleccionado(producto);
+    setFormRetiro({
+      cantidad: "",
+      motivo: "Vencimiento",
+    });
+    setError("");
+    setModalRetiro(true);
+  };
 
-    if (!cantidad || cantidad <= 0) {
-      alert("Cantidad inválida");
+  const handleRetiroChange = (e) => {
+    setFormRetiro({
+      ...formRetiro,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const guardarRetiro = async () => {
+    if (!itemSeleccionado) {
+      setError("No hay producto seleccionado.");
       return;
     }
 
-    if (cantidad > producto.cantidad) {
-      alert("No podés retirar más cantidad de la disponible");
+    const cantidadRetiro = Number(formRetiro.cantidad);
+
+    if (!cantidadRetiro || cantidadRetiro <= 0) {
+      setError("Ingresá una cantidad válida.");
       return;
     }
 
-    const motivo = prompt("Motivo del retiro:", "Vencimiento") || "Vencimiento";
+    if (cantidadRetiro > itemSeleccionado.cantidad) {
+      setError("No podés retirar más cantidad de la disponible.");
+      return;
+    }
+
+    setCargando(true);
+    setError("");
 
     try {
       await axios.post("/retiros", {
-        id_inventario: producto.id,
-        cantidad,
-        motivo,
+        id_inventario: itemSeleccionado.id,
+        cantidad: cantidadRetiro,
+        motivo: formRetiro.motivo || "Vencimiento",
         id_usuario: usuario?.id_usuario || 1,
       });
 
-      alert("Retiro registrado correctamente");
+      setModalRetiro(false);
+      setItemSeleccionado(null);
       cargarInventario();
     } catch (err) {
-      console.error("Error registrando retiro:", err);
-      alert(err.response?.data?.mensaje || "Error al registrar retiro");
+      setError(err.response?.data?.mensaje || "Error al registrar retiro.");
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -624,7 +656,7 @@ export default function Inventario({ onNavegar, usuario }) {
                 <span className="acciones-grupo">
                   <button
                     className="btn-agregar"
-                    onClick={() => retirarProducto(p)}
+                    onClick={() => abrirModalRetiro(p)}
                     disabled={p.cantidad <= 0}
                   >
                     Retirar
@@ -699,6 +731,75 @@ export default function Inventario({ onNavegar, usuario }) {
           </div>
         </div>
       </div>
+
+      {/* ── Modal: Retirar producto ── */}
+      {modalRetiro && itemSeleccionado && (
+        <Modal
+          titulo={`Retirar: ${itemSeleccionado.nombre}`}
+          onCerrar={() => setModalRetiro(false)}
+        >
+          <div className="modal-body">
+            <div className="retiro-info">
+              <p className="retiro-producto">{itemSeleccionado.nombre}</p>
+              <p className="retiro-detalle">
+                Cantidad disponible: <strong>{itemSeleccionado.cantidad} u.</strong>
+              </p>
+              <p className="retiro-detalle">
+                Vencimiento: <strong>{itemSeleccionado.vencimiento}</strong>
+              </p>
+            </div>
+
+            <div className="form-grupo">
+              <label className="form-label">Cantidad a retirar *</label>
+              <input
+                className="form-input"
+                type="number"
+                name="cantidad"
+                min="1"
+                max={itemSeleccionado.cantidad}
+                placeholder="Ej: 2"
+                value={formRetiro.cantidad}
+                onChange={handleRetiroChange}
+              />
+            </div>
+
+            <div className="form-grupo">
+              <label className="form-label">Motivo *</label>
+              <select
+                className="form-input"
+                name="motivo"
+                value={formRetiro.motivo}
+                onChange={handleRetiroChange}
+              >
+                <option value="Vencimiento">Vencimiento</option>
+                <option value="Producto dañado">Producto dañado</option>
+                <option value="Rotura de envase">Rotura de envase</option>
+                <option value="Control de calidad">Control de calidad</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+
+            {error && <p className="form-error">{error}</p>}
+          </div>
+
+          <div className="modal-footer">
+            <button
+              className="btn-cancelar"
+              onClick={() => setModalRetiro(false)}
+            >
+              Cancelar
+            </button>
+
+            <button
+              className="btn-agregar"
+              onClick={guardarRetiro}
+              disabled={cargando}
+            >
+              {cargando ? "Registrando..." : "Confirmar retiro"}
+            </button>
+          </div>
+        </Modal>
+      )}
 
       {/* ── Modal: Nuevo producto ── */}
       {modalNuevo && (
