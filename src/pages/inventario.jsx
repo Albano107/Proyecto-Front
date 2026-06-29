@@ -3,22 +3,29 @@ import axios from "../api/axios";
 import "./inventario.css";
 
 // ─── AutoComplete ─────────────────────────────────────────────────────────────
-function AutoComplete({ label, opciones, valorId, valorTexto, onSeleccionar, placeholder }) {
-  const [texto, setTexto]           = useState(valorTexto || "");
-  const [abierto, setAbierto]       = useState(false);
-  const [destacado, setDestacado]   = useState(-1);
-  const contenedor                  = useRef(null);
+function AutoComplete({ label, opciones, valorTexto, onSeleccionar, placeholder }) {
+  const [texto, setTexto] = useState(valorTexto || "");
+  const [abierto, setAbierto] = useState(false);
+  const [destacado, setDestacado] = useState(-1);
+  const contenedor = useRef(null);
 
-  // Sincronizar texto si el padre resetea el valor
   useEffect(() => {
     setTexto(valorTexto || "");
   }, [valorTexto]);
 
-  // Cerrar al hacer click afuera
   useEffect(() => {
-  cargarInventario();
-  cargarProductosYSucursales();
-}, [sucursalActiva]);
+    const handleClickFuera = (e) => {
+      if (contenedor.current && !contenedor.current.contains(e.target)) {
+        setAbierto(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickFuera);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickFuera);
+    };
+  }, []);
 
   const filtradas = opciones.filter((o) =>
     o.label.toLowerCase().includes(texto.toLowerCase())
@@ -33,6 +40,7 @@ function AutoComplete({ label, opciones, valorId, valorTexto, onSeleccionar, pla
 
   const handleKeyDown = (e) => {
     if (!abierto) return;
+
     if (e.key === "ArrowDown") {
       setDestacado((d) => Math.min(d + 1, filtradas.length - 1));
     } else if (e.key === "ArrowUp") {
@@ -47,6 +55,7 @@ function AutoComplete({ label, opciones, valorId, valorTexto, onSeleccionar, pla
   return (
     <div className="form-grupo" ref={contenedor}>
       <label className="form-label">{label} *</label>
+
       <div className="autocomplete-wrap">
         <input
           className="form-input"
@@ -57,19 +66,24 @@ function AutoComplete({ label, opciones, valorId, valorTexto, onSeleccionar, pla
             setTexto(e.target.value);
             setAbierto(true);
             setDestacado(-1);
-            // Si borra el texto, limpiar selección
-            if (!e.target.value) onSeleccionar("", "");
+
+            if (!e.target.value) {
+              onSeleccionar("", "");
+            }
           }}
           onFocus={() => setAbierto(true)}
           onKeyDown={handleKeyDown}
           autoComplete="off"
         />
+
         {abierto && filtradas.length > 0 && (
           <ul className="autocomplete-lista">
             {filtradas.map((o, i) => (
               <li
                 key={o.id}
-                className={`autocomplete-item${i === destacado ? " autocomplete-item--activo" : ""}`}
+                className={`autocomplete-item${
+                  i === destacado ? " autocomplete-item--activo" : ""
+                }`}
                 onMouseDown={() => seleccionar(o)}
               >
                 {o.label}
@@ -77,9 +91,12 @@ function AutoComplete({ label, opciones, valorId, valorTexto, onSeleccionar, pla
             ))}
           </ul>
         )}
+
         {abierto && texto && filtradas.length === 0 && (
           <ul className="autocomplete-lista">
-            <li className="autocomplete-item autocomplete-item--vacio">Sin resultados</li>
+            <li className="autocomplete-item autocomplete-item--vacio">
+              Sin resultados
+            </li>
           </ul>
         )}
       </div>
@@ -94,8 +111,11 @@ function Modal({ titulo, onCerrar, children }) {
       <div className="modal-caja" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-titulo">{titulo}</h2>
-          <button className="modal-cerrar" onClick={onCerrar}>✕</button>
+          <button className="modal-cerrar" onClick={onCerrar}>
+            ✕
+          </button>
         </div>
+
         {children}
       </div>
     </div>
@@ -107,16 +127,34 @@ export default function Inventario({ onNavegar, usuario }) {
   const [sucursalActiva, setSucursalActiva] = useState(
     usuario?.rol === "Operario" ? usuario.id_sucursal : null
   );
+
   const [modo, setModo] = useState("productos");
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [productos, setProductos] = useState([]);
+
+  // Paginación
+  const [pagina, setPagina] = useState(1);
+  const [limite, setLimite] = useState(10);
+  const [totalRegistros, setTotalRegistros] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+
+  const [resumen, setResumen] = useState({
+    totalProductos: 0,
+    totalUnidades: 0,
+    verdesProductos: 0,
+    amarillosProductos: 0,
+    rojosProductos: 0,
+    verdesUnidades: 0,
+    amarillosUnidades: 0,
+    rojosUnidades: 0,
+  });
 
   // Listas para los selects
   const [listaProductos, setListaProductos] = useState([]);
   const [listaSucursales, setListaSucursales] = useState([]);
 
   // Control de modales
-  const [modalNuevo, setModalNuevo]   = useState(false);
+  const [modalNuevo, setModalNuevo] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const [modalEliminar, setModalEliminar] = useState(false);
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
@@ -128,7 +166,7 @@ export default function Inventario({ onNavegar, usuario }) {
     fecha_vencimiento: "",
     cantidad: "",
   });
-  // Textos visibles en los autocomplete (para resetearlos al abrir modal)
+
   const [textoProducto, setTextoProducto] = useState("");
   const [textoSucursal, setTextoSucursal] = useState("");
 
@@ -139,25 +177,55 @@ export default function Inventario({ onNavegar, usuario }) {
   });
 
   const [cargando, setCargando] = useState(false);
-  const [error, setError]       = useState("");
+  const [error, setError] = useState("");
 
   // ── Carga de datos ──────────────────────────────────────────────────────────
-const cargarInventario = async () => {
-  try {
-    const url = sucursalActiva ? `/inventario?id_sucursal=${sucursalActiva}` : "/inventario";
-    const response = await axios.get(url);
-    const datos = response.data.map((item) => ({
-      id: item.id_inventario,
-      nombre: item.producto,
-      vencimiento: item.fecha_vencimiento.split("T")[0],
-      cantidad: item.cantidad,
-      estado: item.estado.toLowerCase(),
-    }));
-    setProductos(datos);
-  } catch (err) {
-    console.error("Error cargando inventario:", err);
-  }
-};
+  const cargarInventario = async () => {
+    try {
+      const params = new URLSearchParams();
+
+      params.append("page", pagina);
+      params.append("limit", limite);
+
+      if (sucursalActiva) {
+        params.append("id_sucursal", sucursalActiva);
+      }
+
+      const response = await axios.get(`/inventario?${params.toString()}`);
+
+      const lista = response.data.datos || response.data;
+
+      const datos = lista.map((item) => ({
+        id: item.id_inventario,
+        nombre: item.producto,
+        vencimiento: item.fecha_vencimiento.split("T")[0],
+        cantidad: item.cantidad,
+        estado: item.estado.toLowerCase(),
+      }));
+
+      setProductos(datos);
+
+      if (response.data.total !== undefined) {
+        setTotalRegistros(response.data.total);
+        setTotalPaginas(response.data.totalPaginas);
+      }
+
+      if (response.data.resumen) {
+        setResumen({
+          totalProductos: Number(response.data.resumen.totalProductos || 0),
+          totalUnidades: Number(response.data.resumen.totalUnidades || 0),
+          verdesProductos: Number(response.data.resumen.verdesProductos || 0),
+          amarillosProductos: Number(response.data.resumen.amarillosProductos || 0),
+          rojosProductos: Number(response.data.resumen.rojosProductos || 0),
+          verdesUnidades: Number(response.data.resumen.verdesUnidades || 0),
+          amarillosUnidades: Number(response.data.resumen.amarillosUnidades || 0),
+          rojosUnidades: Number(response.data.resumen.rojosUnidades || 0),
+        });
+      }
+    } catch (err) {
+      console.error("Error cargando inventario:", err);
+    }
+  };
 
   const cargarProductosYSucursales = async () => {
     try {
@@ -165,6 +233,7 @@ const cargarInventario = async () => {
         axios.get("/productos"),
         axios.get("/sucursales"),
       ]);
+
       setListaProductos(resP.data);
       setListaSucursales(resS.data);
     } catch (err) {
@@ -172,33 +241,45 @@ const cargarInventario = async () => {
     }
   };
 
-useEffect(() => {
-  cargarProductosYSucursales();
-}, []);
+  useEffect(() => {
+    cargarProductosYSucursales();
+  }, []);
 
-useEffect(() => {
-  if (usuario?.rol === "Operario" && usuario?.id_sucursal) {
-    setSucursalActiva(usuario.id_sucursal);
-  }
-}, [usuario]);
+  useEffect(() => {
+    if (usuario?.rol === "Operario" && usuario?.id_sucursal) {
+      setSucursalActiva(usuario.id_sucursal);
+      setPagina(1);
+    }
+  }, [usuario]);
 
-useEffect(() => {
-  cargarInventario();
-}, [sucursalActiva]);
+  useEffect(() => {
+    cargarInventario();
+  }, [sucursalActiva, pagina, limite]);
 
   // ── Acciones existentes ─────────────────────────────────────────────────────
   const retirarProducto = async (producto) => {
     const cantidad = Number(prompt(`Cantidad a retirar de ${producto.nombre}:`));
-    if (!cantidad || cantidad <= 0) { alert("Cantidad inválida"); return; }
-    if (cantidad > producto.cantidad) { alert("No podés retirar más cantidad de la disponible"); return; }
+
+    if (!cantidad || cantidad <= 0) {
+      alert("Cantidad inválida");
+      return;
+    }
+
+    if (cantidad > producto.cantidad) {
+      alert("No podés retirar más cantidad de la disponible");
+      return;
+    }
+
     const motivo = prompt("Motivo del retiro:", "Vencimiento") || "Vencimiento";
+
     try {
       await axios.post("/retiros", {
         id_inventario: producto.id,
         cantidad,
         motivo,
-        id_usuario: 1,
+        id_usuario: usuario?.id_usuario || 1,
       });
+
       alert("Retiro registrado correctamente");
       cargarInventario();
     } catch (err) {
@@ -209,7 +290,13 @@ useEffect(() => {
 
   // ── Nuevo producto ──────────────────────────────────────────────────────────
   const abrirModalNuevo = () => {
-    setFormNuevo({ id_producto: "", id_sucursal: "", fecha_vencimiento: "", cantidad: "" });
+    setFormNuevo({
+      id_producto: "",
+      id_sucursal: "",
+      fecha_vencimiento: "",
+      cantidad: "",
+    });
+
     setTextoProducto("");
     setTextoSucursal("");
     setError("");
@@ -217,21 +304,28 @@ useEffect(() => {
   };
 
   const handleNuevoChange = (e) => {
-    setFormNuevo({ ...formNuevo, [e.target.name]: e.target.value });
+    setFormNuevo({
+      ...formNuevo,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const guardarNuevoProducto = async () => {
     const { id_producto, id_sucursal, fecha_vencimiento, cantidad } = formNuevo;
+
     if (!id_producto || !id_sucursal || !fecha_vencimiento || !cantidad) {
       setError("Completá todos los campos.");
       return;
     }
+
     if (Number(cantidad) <= 0) {
       setError("La cantidad debe ser mayor a 0.");
       return;
     }
+
     setCargando(true);
     setError("");
+
     try {
       await axios.post("/inventario", {
         id_producto: Number(id_producto),
@@ -239,7 +333,9 @@ useEffect(() => {
         fecha_vencimiento,
         cantidad: Number(cantidad),
       });
+
       setModalNuevo(false);
+      setPagina(1);
       cargarInventario();
     } catch (err) {
       setError(err.response?.data?.mensaje || "Error al guardar el producto.");
@@ -251,32 +347,43 @@ useEffect(() => {
   // ── Editar ──────────────────────────────────────────────────────────────────
   const abrirModalEditar = (item) => {
     setItemSeleccionado(item);
-    setFormEditar({ fecha_vencimiento: item.vencimiento, cantidad: item.cantidad });
+    setFormEditar({
+      fecha_vencimiento: item.vencimiento,
+      cantidad: item.cantidad,
+    });
     setError("");
     setModalEditar(true);
   };
 
   const handleEditarChange = (e) => {
-    setFormEditar({ ...formEditar, [e.target.name]: e.target.value });
+    setFormEditar({
+      ...formEditar,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const guardarEdicion = async () => {
     const { fecha_vencimiento, cantidad } = formEditar;
-    if (!fecha_vencimiento || !cantidad) {
+
+    if (!fecha_vencimiento || cantidad === "") {
       setError("Completá todos los campos.");
       return;
     }
+
     if (Number(cantidad) < 0) {
       setError("La cantidad no puede ser negativa.");
       return;
     }
+
     setCargando(true);
     setError("");
+
     try {
       await axios.put(`/inventario/${itemSeleccionado.id}`, {
         fecha_vencimiento,
         cantidad: Number(cantidad),
       });
+
       setModalEditar(false);
       cargarInventario();
     } catch (err) {
@@ -294,8 +401,10 @@ useEffect(() => {
 
   const confirmarEliminar = async () => {
     setCargando(true);
+
     try {
       await axios.delete(`/inventario/${itemSeleccionado.id}`);
+
       setModalEliminar(false);
       cargarInventario();
     } catch (err) {
@@ -306,20 +415,25 @@ useEffect(() => {
   };
 
   // ── Totales ─────────────────────────────────────────────────────────────────
-  const totalP     = productos.length;
-  const verdesP    = productos.filter((p) => p.estado === "verde").length;
-  const amarillosP = productos.filter((p) => p.estado === "amarillo").length;
-  const rojosP     = productos.filter((p) => p.estado === "rojo").length;
+  const total =
+    modo === "productos"
+      ? resumen.totalProductos
+      : resumen.totalUnidades;
 
-  const totalU     = productos.reduce((acc, p) => acc + p.cantidad, 0);
-  const verdesU    = productos.filter((p) => p.estado === "verde").reduce((acc, p) => acc + p.cantidad, 0);
-  const amarillosU = productos.filter((p) => p.estado === "amarillo").reduce((acc, p) => acc + p.cantidad, 0);
-  const rojosU     = productos.filter((p) => p.estado === "rojo").reduce((acc, p) => acc + p.cantidad, 0);
+  const verdes =
+    modo === "productos"
+      ? resumen.verdesProductos
+      : resumen.verdesUnidades;
 
-  const total    = modo === "productos" ? totalP     : totalU;
-  const verdes   = modo === "productos" ? verdesP    : verdesU;
-  const amarillos = modo === "productos" ? amarillosP : amarillosU;
-  const rojos    = modo === "productos" ? rojosP     : rojosU;
+  const amarillos =
+    modo === "productos"
+      ? resumen.amarillosProductos
+      : resumen.amarillosUnidades;
+
+  const rojos =
+    modo === "productos"
+      ? resumen.rojosProductos
+      : resumen.rojosUnidades;
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -327,12 +441,23 @@ useEffect(() => {
       {/* Sidebar */}
       <div className="sidebar">
         <div className="sidebar-logo">GóndolaPro</div>
+
         <nav className="sidebar-nav">
-          <a className="nav-item" onClick={() => onNavegar("inicio")}>🏠 Inicio</a>
+          <a className="nav-item" onClick={() => onNavegar("inicio")}>
+            🏠 Inicio
+          </a>
+
           <a className="nav-item active">📦 Inventario</a>
-          <a className="nav-item" onClick={() => onNavegar("reportes")}>📊 Reportes</a>
-          {usuario?.rol !== "Operario" && (<a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
-)}
+
+          <a className="nav-item" onClick={() => onNavegar("reportes")}>
+            📊 Reportes
+          </a>
+
+          {usuario?.rol !== "Operario" && (
+            <a className="nav-item" onClick={() => onNavegar("usuarios")}>
+              👤 Usuarios
+            </a>
+          )}
         </nav>
       </div>
 
@@ -341,13 +466,30 @@ useEffect(() => {
         <div className="menu-mobile">
           <div className="menu-mobile-header">
             <span>GóndolaPro</span>
-            <span onClick={() => setMenuAbierto(false)} className="menu-cerrar">✕</span>
+            <span
+              onClick={() => setMenuAbierto(false)}
+              className="menu-cerrar"
+            >
+              ✕
+            </span>
           </div>
+
           <nav className="menu-mobile-nav">
-            <a className="nav-item" onClick={() => onNavegar("inicio")}>🏠 Inicio</a>
+            <a className="nav-item" onClick={() => onNavegar("inicio")}>
+              🏠 Inicio
+            </a>
+
             <a className="nav-item active">📦 Inventario</a>
-            <a className="nav-item" onClick={() => onNavegar("reportes")}>📊 Reportes</a>
-            <a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
+
+            <a className="nav-item" onClick={() => onNavegar("reportes")}>
+              📊 Reportes
+            </a>
+
+            {usuario?.rol !== "Operario" && (
+              <a className="nav-item" onClick={() => onNavegar("usuarios")}>
+                👤 Usuarios
+              </a>
+            )}
           </nav>
         </div>
       )}
@@ -356,50 +498,72 @@ useEffect(() => {
         {/* Topbar */}
         <div className="topbar">
           <span className="topbar-logo">GóndolaPro</span>
-          <span className="topbar-menu" onClick={() => setMenuAbierto(true)}>☰</span>
+          <span
+            className="topbar-menu"
+            onClick={() => setMenuAbierto(true)}
+          >
+            ☰
+          </span>
         </div>
 
         {/* Header de página */}
         <div className="page-header">
           <div className="title-sucursales">
-    <h1 className="page-title">Inventario</h1>
-    <div className="sucursal-tabs">
-      {usuario?.rol !== "Operario" && (
-        <button
-          className={`btn-sucursal ${!sucursalActiva ? "activo" : ""}`}
-          onClick={() => setSucursalActiva(null)}
-        >
-          Todas
-        </button>
-      )}
-      {listaSucursales.map((s) => (
-        <button
-          key={s.id_sucursal}
-          className={`btn-sucursal ${sucursalActiva === s.id_sucursal ? "activo" : ""}`}
-          onClick={() => {
-            if (usuario?.rol !== "Operario") setSucursalActiva(s.id_sucursal);
-          }}
-          disabled={usuario?.rol === "Operario" && s.id_sucursal !== usuario.id_sucursal}
-        >
-          {s.nombre}
-        </button>
-      ))}
-    </div>
-  </div>
-  <div className="header-actions">
-    <button
-      className="btn-modo"
-      onClick={() => setModo(modo === "productos" ? "unidades" : "productos")}
-    >
-      Ver por {modo === "productos" ? "unidades" : "productos"}
-    </button>
-    {usuario?.rol !== "Operario" && (
-      <button className="btn-agregar" onClick={abrirModalNuevo}>
-        + Nuevo producto
-      </button>
-    )}
-  </div>
-</div>
+            <h1 className="page-title">Inventario</h1>
+
+            <div className="sucursal-tabs">
+              {usuario?.rol !== "Operario" && (
+                <button
+                  className={`btn-sucursal ${!sucursalActiva ? "activo" : ""}`}
+                  onClick={() => {
+                    setSucursalActiva(null);
+                    setPagina(1);
+                  }}
+                >
+                  Todas
+                </button>
+              )}
+
+              {listaSucursales.map((s) => (
+                <button
+                  key={s.id_sucursal}
+                  className={`btn-sucursal ${
+                    sucursalActiva === s.id_sucursal ? "activo" : ""
+                  }`}
+                  onClick={() => {
+                    if (usuario?.rol !== "Operario") {
+                      setSucursalActiva(s.id_sucursal);
+                      setPagina(1);
+                    }
+                  }}
+                  disabled={
+                    usuario?.rol === "Operario" &&
+                    s.id_sucursal !== usuario.id_sucursal
+                  }
+                >
+                  {s.nombre}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="header-actions">
+            <button
+              className="btn-modo"
+              onClick={() =>
+                setModo(modo === "productos" ? "unidades" : "productos")
+              }
+            >
+              Ver por {modo === "productos" ? "unidades" : "productos"}
+            </button>
+
+            {usuario?.rol !== "Operario" && (
+              <button className="btn-agregar" onClick={abrirModalNuevo}>
+                + Nuevo producto
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Cards */}
         <div className="cards-grid">
@@ -407,14 +571,17 @@ useEffect(() => {
             <p className="card-label">Total {modo}</p>
             <p className="card-valor">{total}</p>
           </div>
+
           <div className="card">
             <p className="card-label">En buen estado</p>
             <p className="card-valor verde">{verdes}</p>
           </div>
+
           <div className="card">
             <p className="card-label">Por vencer</p>
             <p className="card-valor amarillo">{amarillos}</p>
           </div>
+
           <div className="card">
             <p className="card-label">Vencidos</p>
             <p className="card-valor rojo">{rojos}</p>
@@ -431,58 +598,130 @@ useEffect(() => {
             <span>Acciones</span>
           </div>
 
-          {productos.map((p) => (
-            <div className="tabla-fila tabla-fila-extendida" key={p.id}>
-              <span className="producto-nombre">{p.nombre}</span>
-              <span>{p.vencimiento}</span>
-              <span>{p.cantidad} u.</span>
-              <span className={`badge badge-${p.estado}`}>
-                {p.estado === "verde"    && "OK"}
-                {p.estado === "amarillo" && "Por vencer"}
-                {p.estado === "rojo"     && "Vencido"}
-              </span>
-              <span className="acciones-grupo">
-                <button
-                  className="btn-agregar"
-                  onClick={() => retirarProducto(p)}
-                  disabled={p.cantidad <= 0}
-                >
-                  Retirar
-                </button>
-                <button
-                  className="btn-editar"
-                  onClick={() => abrirModalEditar(p)}
-                >
-                  ✏️ Editar
-                </button>
-                <button
-                  className="btn-eliminar"
-                  onClick={() => abrirModalEliminar(p)}
-                >
-                  🗑️ Eliminar
-                </button>
-              </span>
+          {productos.length === 0 ? (
+            <div className="tabla-fila tabla-fila-extendida">
+              <span>No hay productos para mostrar</span>
+              <span>-</span>
+              <span>-</span>
+              <span>-</span>
+              <span>-</span>
             </div>
-          ))}
+          ) : (
+            productos.map((p) => (
+              <div className="tabla-fila tabla-fila-extendida" key={p.id}>
+                <span className="producto-nombre">{p.nombre}</span>
+
+                <span>{p.vencimiento}</span>
+
+                <span>{p.cantidad} u.</span>
+
+                <span className={`badge badge-${p.estado}`}>
+                  {p.estado === "verde" && "OK"}
+                  {p.estado === "amarillo" && "Por vencer"}
+                  {p.estado === "rojo" && "Vencido"}
+                </span>
+
+                <span className="acciones-grupo">
+                  <button
+                    className="btn-agregar"
+                    onClick={() => retirarProducto(p)}
+                    disabled={p.cantidad <= 0}
+                  >
+                    Retirar
+                  </button>
+
+                  <button
+                    className="btn-editar"
+                    onClick={() => abrirModalEditar(p)}
+                  >
+                    ✏️ Editar
+                  </button>
+
+                  <button
+                    className="btn-eliminar"
+                    onClick={() => abrirModalEliminar(p)}
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Paginación */}
+        <div className="paginacion-container">
+          <div className="paginacion-info">
+            <span>
+              Mostrando {productos.length} de {totalRegistros} registros
+            </span>
+          </div>
+
+          <div className="paginacion-controles">
+            <label>Mostrar</label>
+
+            <select
+              className="paginacion-select"
+              value={limite}
+              onChange={(e) => {
+                setLimite(Number(e.target.value));
+                setPagina(1);
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={30}>30</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={500}>500</option>
+            </select>
+
+            <span>por página</span>
+
+            <button
+              className="btn-paginacion"
+              onClick={() => setPagina(pagina - 1)}
+              disabled={pagina <= 1}
+            >
+              Anterior
+            </button>
+
+            <span className="paginacion-pagina">
+              Página {pagina} de {totalPaginas}
+            </span>
+
+            <button
+              className="btn-paginacion"
+              onClick={() => setPagina(pagina + 1)}
+              disabled={pagina >= totalPaginas}
+            >
+              Siguiente
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ── Modal: Nuevo producto ── */}
       {modalNuevo && (
-        <Modal titulo="Nuevo producto en inventario" onCerrar={() => setModalNuevo(false)}>
+        <Modal
+          titulo="Nuevo producto en inventario"
+          onCerrar={() => setModalNuevo(false)}
+        >
           <div className="modal-body">
-
             <AutoComplete
               label="Producto"
               placeholder="Buscar producto..."
               opciones={listaProductos.map((p) => ({
                 id: p.id_producto,
-                label: p.codigo_barras ? `${p.nombre} (${p.codigo_barras})` : p.nombre,
+                label: p.codigo_barras
+                  ? `${p.nombre} (${p.codigo_barras})`
+                  : p.nombre,
               }))}
-              valorId={formNuevo.id_producto}
               valorTexto={textoProducto}
               onSeleccionar={(id, label) => {
-                setFormNuevo({ ...formNuevo, id_producto: id });
+                setFormNuevo({
+                  ...formNuevo,
+                  id_producto: id,
+                });
                 setTextoProducto(label);
               }}
             />
@@ -494,10 +733,12 @@ useEffect(() => {
                 id: s.id_sucursal,
                 label: s.nombre,
               }))}
-              valorId={formNuevo.id_sucursal}
               valorTexto={textoSucursal}
               onSeleccionar={(id, label) => {
-                setFormNuevo({ ...formNuevo, id_sucursal: id });
+                setFormNuevo({
+                  ...formNuevo,
+                  id_sucursal: id,
+                });
                 setTextoSucursal(label);
               }}
             />
@@ -530,10 +771,18 @@ useEffect(() => {
           </div>
 
           <div className="modal-footer">
-            <button className="btn-cancelar" onClick={() => setModalNuevo(false)}>
+            <button
+              className="btn-cancelar"
+              onClick={() => setModalNuevo(false)}
+            >
               Cancelar
             </button>
-            <button className="btn-agregar" onClick={guardarNuevoProducto} disabled={cargando}>
+
+            <button
+              className="btn-agregar"
+              onClick={guardarNuevoProducto}
+              disabled={cargando}
+            >
               {cargando ? "Guardando..." : "Guardar"}
             </button>
           </div>
@@ -542,9 +791,11 @@ useEffect(() => {
 
       {/* ── Modal: Editar ── */}
       {modalEditar && itemSeleccionado && (
-        <Modal titulo={`Editar: ${itemSeleccionado.nombre}`} onCerrar={() => setModalEditar(false)}>
+        <Modal
+          titulo={`Editar: ${itemSeleccionado.nombre}`}
+          onCerrar={() => setModalEditar(false)}
+        >
           <div className="modal-body">
-
             <div className="form-grupo">
               <label className="form-label">Fecha de vencimiento *</label>
               <input
@@ -572,10 +823,18 @@ useEffect(() => {
           </div>
 
           <div className="modal-footer">
-            <button className="btn-cancelar" onClick={() => setModalEditar(false)}>
+            <button
+              className="btn-cancelar"
+              onClick={() => setModalEditar(false)}
+            >
               Cancelar
             </button>
-            <button className="btn-agregar" onClick={guardarEdicion} disabled={cargando}>
+
+            <button
+              className="btn-agregar"
+              onClick={guardarEdicion}
+              disabled={cargando}
+            >
               {cargando ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>
@@ -584,18 +843,31 @@ useEffect(() => {
 
       {/* ── Modal: Confirmar eliminar ── */}
       {modalEliminar && itemSeleccionado && (
-        <Modal titulo="Confirmar eliminación" onCerrar={() => setModalEliminar(false)}>
+        <Modal
+          titulo="Confirmar eliminación"
+          onCerrar={() => setModalEliminar(false)}
+        >
           <div className="modal-body">
             <p className="modal-texto-confirmar">
-              ¿Estás seguro que querés eliminar <strong>{itemSeleccionado.nombre}</strong> del inventario?
-              Esta acción no se puede deshacer.
+              ¿Estás seguro que querés eliminar{" "}
+              <strong>{itemSeleccionado.nombre}</strong> del inventario? Esta
+              acción no se puede deshacer.
             </p>
           </div>
+
           <div className="modal-footer">
-            <button className="btn-cancelar" onClick={() => setModalEliminar(false)}>
+            <button
+              className="btn-cancelar"
+              onClick={() => setModalEliminar(false)}
+            >
               Cancelar
             </button>
-            <button className="btn-eliminar-confirm" onClick={confirmarEliminar} disabled={cargando}>
+
+            <button
+              className="btn-eliminar-confirm"
+              onClick={confirmarEliminar}
+              disabled={cargando}
+            >
               {cargando ? "Eliminando..." : "Sí, eliminar"}
             </button>
           </div>
