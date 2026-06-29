@@ -142,3 +142,64 @@
   }
 
 }
+.title-sucursales {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sucursal-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-sucursal {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  transition: 0.2s ease;
+}
+
+.btn-sucursal:hover {
+  background: #f3f4f6;
+}
+
+.btn-sucursal.activo {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.btn-sucursal:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-valor-texto {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 6px 0;
+  line-height: 1.2;
+}
+
+.tabla-header-reportes,
+.tabla-fila-reportes {
+  grid-template-columns: 1.5fr 0.8fr 1fr 1fr 1fr 1fr;
+}
+
+@media (max-width: 900px) {
+  .tabla-header-reportes {
+    display: none;
+  }
+
+  .tabla-fila-reportes {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
