@@ -868,3 +868,12 @@
   color: #475569;
   margin: 4px 0;
 }
+
+.col-ordenable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.col-ordenable:hover {
+  color: #1e3a5f;
+}

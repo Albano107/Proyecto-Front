@@ -127,6 +127,7 @@ export default function Inventario({ onNavegar, usuario }) {
   const [sucursalActiva, setSucursalActiva] = useState(
     usuario?.rol === "Operario" ? usuario.id_sucursal : null
   );
+  const [orden, setOrden] = useState({ columna: null, direccion: "asc" });
 
   const [modo, setModo] = useState("productos");
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -185,6 +186,13 @@ export default function Inventario({ onNavegar, usuario }) {
 
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  const toggleOrden = (columna) => {
+  setOrden((prev) =>
+    prev.columna === columna
+      ? { columna, direccion: prev.direccion === "asc" ? "desc" : "asc" }
+      : { columna, direccion: "asc" }
+  );
+};
 
   // ── Carga de datos ──────────────────────────────────────────────────────────
   const cargarInventario = async () => {
@@ -196,6 +204,11 @@ export default function Inventario({ onNavegar, usuario }) {
 
       if (sucursalActiva) {
         params.append("id_sucursal", sucursalActiva);
+      }
+
+      if (orden.columna) {
+        params.append("orderBy", orden.columna);
+        params.append("orderDir", orden.direccion);
       }
 
       const response = await axios.get(`/inventario?${params.toString()}`);
@@ -261,7 +274,7 @@ export default function Inventario({ onNavegar, usuario }) {
 
   useEffect(() => {
     cargarInventario();
-  }, [sucursalActiva, pagina, limite]);
+  }, [sucursalActiva, pagina, limite, orden]);
 
   // ── Retirar producto ────────────────────────────────────────────────────────
   const abrirModalRetiro = (producto) => {
@@ -467,6 +480,19 @@ export default function Inventario({ onNavegar, usuario }) {
       ? resumen.rojosProductos
       : resumen.rojosUnidades;
 
+
+  const productoOrdenados = [...productos].sort((a, b) => {
+  const { columna, direccion } = orden;
+  const mult = direccion === "asc" ? 1 : -1;
+  if (columna === "nombre") return mult * a.nombre.localeCompare(b.nombre);
+  if (columna === "vencimiento") return mult * (new Date(a.vencimiento) - new Date(b.vencimiento));
+  if (columna === "cantidad") return mult * (a.cantidad - b.cantidad);
+  if (columna === "estado") {
+    const prioridad = { rojo: 0, amarillo: 1, verde: 2 };
+    return mult * (prioridad[a.estado] - prioridad[b.estado]);
+  }
+  return 0;
+});
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="layout">
@@ -623,23 +649,31 @@ export default function Inventario({ onNavegar, usuario }) {
         {/* Tabla */}
         <div className="tabla-container">
           <div className="tabla-header tabla-header-extendido">
-            <span>Producto</span>
-            <span>Vencimiento</span>
-            <span>Cantidad</span>
-            <span>Estado</span>
+            <span className="col-ordenable" onClick={() => toggleOrden("nombre")}>
+              Producto {orden.columna === "nombre" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
+            </span>
+            <span className="col-ordenable" onClick={() => toggleOrden("vencimiento")}>
+              Vencimiento {orden.columna === "vencimiento" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
+            </span>
+            <span className="col-ordenable" onClick={() => toggleOrden("cantidad")}>
+              Cantidad {orden.columna === "cantidad" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
+            </span>
+            <span className="col-ordenable" onClick={() => toggleOrden("estado")}>
+              Estado {orden.columna === "estado" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
+            </span>
             <span>Acciones</span>
           </div>
 
-          {productos.length === 0 ? (
-            <div className="tabla-fila tabla-fila-extendida">
-              <span>No hay productos para mostrar</span>
-              <span>-</span>
-              <span>-</span>
-              <span>-</span>
-              <span>-</span>
-            </div>
+          {productoOrdenados.length === 0 ? (
+        <div className="tabla-fila tabla-fila-extendida">
+          <span>No hay productos para mostrar</span>
+          <span>-</span>
+          <span>-</span>
+          <span>-</span>
+          <span>-</span>
+        </div>
           ) : (
-            productos.map((p) => (
+            productoOrdenados.map((p) => (
               <div className="tabla-fila tabla-fila-extendida" key={p.id}>
                 <span className="producto-nombre">{p.nombre}</span>
 
