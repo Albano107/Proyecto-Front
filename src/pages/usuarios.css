@@ -152,7 +152,6 @@
 
 @media (max-width: 768px) {
   .sidebar { display: none; }
-
   .contenido { padding: 0; }
 
   .topbar {
@@ -173,7 +172,7 @@
     top: 0; left: 0;
     width: 75%;
     height: 100vh;
-    background-color: #059669;
+    background-color: #064e3b;
     color: white;
     z-index: 100;
     padding: 1.5rem 1rem;
@@ -198,9 +197,12 @@
     gap: 4px;
   }
 
-  .page-header { padding: 0 1rem 1rem; }
+  .page-header { padding: 1rem 1rem 0.5rem; }
 
-  .tabla-container { border-radius: 0; }
+  .tabla-container {
+    border-radius: 0;
+    margin: 0 1rem;
+  }
 
   .tabla-header { display: none; }
 
@@ -213,6 +215,5 @@
   }
 
   .usuario-nombre { font-size: 0.95rem; font-weight: 600; }
-
   .btn-toggle { width: fit-content; }
 }

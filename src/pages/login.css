@@ -192,8 +192,9 @@
 
 @media (max-width: 768px) {
   .login-bg {
-    align-items: flex-start;
-    padding: 2rem 1rem;
+    align-items: center;
+    padding: 1rem;
+    min-height: 100vh;
   }
 
   .login-card {
@@ -204,7 +205,7 @@
 
   .login-left {
     width: 100%;
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem;
   }
 
   .login-right {
@@ -215,5 +216,12 @@
   .login-features {
     display: none;
   }
-}
 
+  .login-brand {
+    font-size: 1.2rem;
+  }
+
+  .login-brand-sub {
+    margin-bottom: 0;
+  }
+}

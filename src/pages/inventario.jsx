@@ -646,6 +646,37 @@ export default function Inventario({ onNavegar, usuario }) {
           </div>
         </div>
 
+        {/* Ordenamiento mobile */}
+        <div className="orden-mobile">
+          <span className="orden-label">Ordenar por:</span>
+          <div className="orden-botones">
+            <button
+              className={`btn-orden ${orden.columna === "nombre" ? "activo" : ""}`}
+              onClick={() => toggleOrden("nombre")}
+            >
+              Nombre {orden.columna === "nombre" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+            </button>
+            <button
+              className={`btn-orden ${orden.columna === "vencimiento" ? "activo" : ""}`}
+              onClick={() => toggleOrden("vencimiento")}
+            >
+              Vencimiento {orden.columna === "vencimiento" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+            </button>
+            <button
+              className={`btn-orden ${orden.columna === "cantidad" ? "activo" : ""}`}
+              onClick={() => toggleOrden("cantidad")}
+            >
+              Cantidad {orden.columna === "cantidad" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+            </button>
+            <button
+              className={`btn-orden ${orden.columna === "estado" ? "activo" : ""}`}
+              onClick={() => toggleOrden("estado")}
+            >
+              Estado {orden.columna === "estado" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+            </button>
+          </div>
+        </div>
+
         {/* Tabla */}
         <div className="tabla-container">
           <div className="tabla-header tabla-header-extendido">
