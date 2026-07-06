@@ -70,9 +70,10 @@ export default function Inicio({ onNavegar, usuario }) {
             <a className="nav-item" onClick={() => onNavegar("reportes")}>
               📊 Reportes
             </a>
+            {usuario?.rol !== "Operario" && (
             <a className="nav-item" onClick={() => onNavegar("usuarios")}>
               👤 Usuarios
-            </a>
+            </a>)}
           </nav>
         </div>
       )}
@@ -95,6 +96,16 @@ export default function Inicio({ onNavegar, usuario }) {
         </div>
 
         <div className="cards-grid">
+
+          {usuario?.rol == "Operario" && (
+          <div
+            className="card"
+          >
+            <p className="card-label">Operador de la sucursal</p>
+            <p className="card-valor">{usuario?.sucursal}</p>
+            <p className="card-hint">Muchas gracias por usar GondolaPro</p>
+          </div>)}
+
 
           <div
             className="card"
@@ -122,7 +133,7 @@ export default function Inicio({ onNavegar, usuario }) {
             <p className="card-valor rojo">{rojos}</p>
             <p className="card-hint">productos</p>
           </div>
-
+          {usuario?.rol !== "Operario" && (
           <div
             className="card"
             onClick={() => onNavegar("usuarios")}
@@ -130,7 +141,7 @@ export default function Inicio({ onNavegar, usuario }) {
             <p className="card-label">👤 Usuarios activos</p>
             <p className="card-valor">{activos}</p>
             <p className="card-hint">usuarios activos</p>
-          </div>
+          </div>)}
 
         </div>
 

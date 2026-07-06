@@ -949,3 +949,22 @@
 .col-ordenable:hover {
   color: #1e3a5f;
 }
+
+/* ── Búsqueda / escaneo por código de barras ── */
+.busqueda-barras {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.busqueda-barras .form-input {
+  min-width: 220px;
+}
+
+/* ── Lector de cámara ── */
+.lector-camara {
+  width: 100%;
+  min-height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "../api/axios";
+import { Html5Qrcode } from "html5-qrcode";
 import "./inventario.css";
 
 // ─── AutoComplete ─────────────────────────────────────────────────────────────
@@ -122,6 +123,45 @@ function Modal({ titulo, onCerrar, children }) {
   );
 }
 
+// ─── Escáner por cámara ────────────────────────────────────────────────────────
+function EscanerCamara({ onDetectado, onCerrar }) {
+  const contenedorId = "lector-camara";
+  const scannerRef = useRef(null);
+ 
+  useEffect(() => {
+    const scanner = new Html5Qrcode(contenedorId);
+    scannerRef.current = scanner;
+ 
+    scanner
+      .start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (codigoDetectado) => {
+          onDetectado(codigoDetectado);
+        },
+        () => {} // errores de lectura frame a frame, se ignoran
+      )
+      .catch(() => {
+        alert("No se pudo acceder a la cámara.");
+        onCerrar();
+      });
+ 
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+      }
+    };
+  }, []);
+ 
+  return (
+    <Modal titulo="Escanear código de barras" onCerrar={onCerrar}>
+      <div className="modal-body">
+        <div id={contenedorId} className="lector-camara" />
+      </div>
+    </Modal>
+  );
+}
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Inventario({ onNavegar, usuario }) {
   const [sucursalActiva, setSucursalActiva] = useState(
@@ -186,6 +226,11 @@ export default function Inventario({ onNavegar, usuario }) {
 
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+
+  // Búsqueda / escaneo por código de barras
+  const [busqueda, setBusqueda] = useState("");
+  const [camaraAbierta, setCamaraAbierta] = useState(false);
+
   const toggleOrden = (columna) => {
   setOrden((prev) =>
     prev.columna === columna
@@ -217,6 +262,7 @@ export default function Inventario({ onNavegar, usuario }) {
 
       const datos = lista.map((item) => ({
         id: item.id_inventario,
+        codigo_barras: item.codigo_barras || "",
         nombre: item.producto,
         vencimiento: item.fecha_vencimiento.split("T")[0],
         cantidad: item.cantidad,
@@ -356,7 +402,7 @@ export default function Inventario({ onNavegar, usuario }) {
   };
 
   const guardarNuevoProducto = async () => {
-    const { id_producto, id_sucursal, fecha_vencimiento, cantidad } = formNuevo;
+    const { id_producto, id_sucursal, fecha_vencimiento, cantidad, codigo_barras } = formNuevo;
 
     if (!id_producto || !id_sucursal || !fecha_vencimiento || !cantidad) {
       setError("Completá todos los campos.");
@@ -480,8 +526,42 @@ export default function Inventario({ onNavegar, usuario }) {
       ? resumen.rojosProductos
       : resumen.rojosUnidades;
 
-
-  const productoOrdenados = [...productos].sort((a, b) => {
+  // ── Búsqueda / escaneo por código de barras ─────────────────────────────────
+  const productosFiltrados = productos.filter((p) => {
+    if (!busqueda.trim()) return true;
+    const termino = busqueda.trim().toLowerCase();
+    return (
+      p.nombre.toLowerCase().includes(termino) ||
+      (p.codigo_barras && p.codigo_barras.toLowerCase().includes(termino))
+    );
+  });
+ 
+  const manejarBusqueda = (codigo) => {
+    setBusqueda(codigo);
+ 
+    const encontrado = productos.find(
+      (p) =>
+        p.codigo_barras &&
+        p.codigo_barras.toLowerCase() === codigo.trim().toLowerCase()
+    );
+ 
+    if (encontrado) {
+      abrirModalEditar(encontrado);
+    }
+  };
+ 
+  const handleBusquedaKeyDown = (e) => {
+    if (e.key === "Enter") {
+      manejarBusqueda(busqueda);
+    }
+  };
+ 
+  const handleCamaraDetectado = (codigo) => {
+    setCamaraAbierta(false);
+    manejarBusqueda(codigo);
+  };
+  
+  const productoOrdenados = [...productosFiltrados].sort((a, b) => {
   const { columna, direccion } = orden;
   const mult = direccion === "asc" ? 1 : -1;
   if (columna === "nombre") return mult * a.nombre.localeCompare(b.nombre);
@@ -606,6 +686,24 @@ export default function Inventario({ onNavegar, usuario }) {
           </div>
 
           <div className="header-actions">
+            <div className="busqueda-barras">
+              <input
+                className="form-input"
+                type="text"
+                placeholder="Buscar o escanear código..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                onKeyDown={handleBusquedaKeyDown}
+              />
+ 
+              <button
+                className="btn-modo"
+                onClick={() => setCamaraAbierta(true)}
+                title="Escanear con cámara"
+              >
+                📷
+              </button>
+            </div>
             <button
               className="btn-modo"
               onClick={() =>
@@ -1006,6 +1104,14 @@ export default function Inventario({ onNavegar, usuario }) {
           </div>
         </Modal>
       )}
+
+      {/* ── Modal: Escanear con cámara ── */}
+      {camaraAbierta && (
+        <EscanerCamara
+          onDetectado={handleCamaraDetectado}
+          onCerrar={() => setCamaraAbierta(false)}
+        />
+      )}      
 
       {/* ── Modal: Confirmar eliminar ── */}
       {modalEliminar && itemSeleccionado && (
