@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "../api/axios";
+import Layout from "../components/Sidebar";
 import "./inicio.css";
 
 export default function Inicio({ onNavegar, usuario }) {
-  const [menuAbierto, setMenuAbierto] = useState(false);
-
   const [dashboard, setDashboard] = useState({
     verdes: 0,
     amarillos: 0,
@@ -33,62 +32,7 @@ export default function Inicio({ onNavegar, usuario }) {
   const activos = dashboard.usuariosActivos;
 
   return (
-    <div className="layout">
-
-      <div className="sidebar">
-        <div className="sidebar-logo">GóndolaPro</div>
-
-        <nav className="sidebar-nav">
-          <a className="nav-item" active>🏠 Inicio</a>
-          <a className="nav-item" onClick={() => onNavegar("inventario")}>📦 Inventario</a>
-          <a className="nav-item" onClick={() => onNavegar("reportes")}>📊 Reportes</a>
-          {usuario?.rol !== "Operario" && (<a className="nav-item" onClick={() => onNavegar("usuarios")}>👤 Usuarios</a>
-)}
-        </nav>
-      </div>
-
-      {menuAbierto && (
-        <div className="menu-mobile">
-          <div className="menu-mobile-header">
-            <span>GóndolaPro</span>
-            <span
-              onClick={() => setMenuAbierto(false)}
-              className="menu-cerrar"
-            >
-              ✕
-            </span>
-          </div>
-
-          <nav className="menu-mobile-nav">
-            <a className="nav-item active">🏠 Inicio</a>
-            <a
-              className="nav-item"
-              onClick={() => onNavegar("inventario")}
-            >
-              📦 Inventario
-            </a>
-            <a className="nav-item" onClick={() => onNavegar("reportes")}>
-              📊 Reportes
-            </a>
-            {usuario?.rol !== "Operario" && (
-            <a className="nav-item" onClick={() => onNavegar("usuarios")}>
-              👤 Usuarios
-            </a>)}
-          </nav>
-        </div>
-      )}
-
-      <div className="contenido">
-
-        <div className="topbar">
-          <span className="topbar-logo">GóndolaPro</span>
-          <span
-            className="topbar-menu"
-            onClick={() => setMenuAbierto(true)}
-          >
-            ☰
-          </span>
-        </div>
+    <Layout activo="inicio" usuario={usuario} onNavegar={onNavegar}>
 
         <div className="page-header">
           <h1 className="page-title">Inicio</h1>
@@ -210,7 +154,6 @@ export default function Inicio({ onNavegar, usuario }) {
 
         </div>
 
-      </div>
-    </div>
+    </Layout>
   );
 }

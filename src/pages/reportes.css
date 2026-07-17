@@ -188,8 +188,8 @@
   line-height: 1.2;
 }
 
-.tabla-header-reportes,
-.tabla-fila-reportes {
+.tabla-header.tabla-header-reportes,
+.tabla-fila.tabla-fila-reportes {
   grid-template-columns: 1.5fr 0.8fr 1fr 1fr 1fr 1fr;
 }
 

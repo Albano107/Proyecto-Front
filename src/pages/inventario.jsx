@@ -1,15 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "../api/axios";
+import { Html5Qrcode } from "html5-qrcode";
+import Layout from "../components/Sidebar";
 import "./inventario.css";
 
 // ─── AutoComplete ─────────────────────────────────────────────────────────────
-function AutoComplete({
-  label,
-  opciones = [],
-  valorTexto,
-  onSeleccionar,
-  placeholder,
-}) {
+function AutoComplete({ label, opciones, valorTexto, onSeleccionar, placeholder }) {
   const [texto, setTexto] = useState(valorTexto || "");
   const [abierto, setAbierto] = useState(false);
   const [destacado, setDestacado] = useState(-1);
@@ -128,20 +124,53 @@ function Modal({ titulo, onCerrar, children }) {
   );
 }
 
+// ─── Escáner por cámara ────────────────────────────────────────────────────────
+function EscanerCamara({ onDetectado, onCerrar }) {
+  const contenedorId = "lector-camara";
+  const scannerRef = useRef(null);
+ 
+  useEffect(() => {
+    const scanner = new Html5Qrcode(contenedorId);
+    scannerRef.current = scanner;
+ 
+    scanner
+      .start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (codigoDetectado) => {
+          onDetectado(codigoDetectado);
+        },
+        () => {} // errores de lectura frame a frame, se ignoran
+      )
+      .catch(() => {
+        alert("No se pudo acceder a la cámara.");
+        onCerrar();
+      });
+ 
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+      }
+    };
+  }, []);
+ 
+  return (
+    <Modal titulo="Escanear código de barras" onCerrar={onCerrar}>
+      <div className="modal-body">
+        <div id={contenedorId} className="lector-camara" />
+      </div>
+    </Modal>
+  );
+}
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Inventario({ onNavegar, usuario }) {
   const [sucursalActiva, setSucursalActiva] = useState(
     usuario?.rol === "Operario" ? usuario.id_sucursal : null
   );
+  const [orden, setOrden] = useState({ columna: null, direccion: "asc" });
 
-  const [orden, setOrden] = useState({
-    columna: null,
-    direccion: "asc",
-  });
-
-  const [busqueda, setBusqueda] = useState("");
   const [modo, setModo] = useState("productos");
-  const [menuAbierto, setMenuAbierto] = useState(false);
   const [productos, setProductos] = useState([]);
 
   // Paginación
@@ -198,21 +227,17 @@ export default function Inventario({ onNavegar, usuario }) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
 
-  const toggleOrden = (columna) => {
-    setOrden((prev) =>
-      prev.columna === columna
-        ? {
-            columna,
-            direccion: prev.direccion === "asc" ? "desc" : "asc",
-          }
-        : {
-            columna,
-            direccion: "asc",
-          }
-    );
+  // Búsqueda / escaneo por código de barras
+  const [busqueda, setBusqueda] = useState("");
+  const [camaraAbierta, setCamaraAbierta] = useState(false);
 
-    setPagina(1);
-  };
+  const toggleOrden = (columna) => {
+  setOrden((prev) =>
+    prev.columna === columna
+      ? { columna, direccion: prev.direccion === "asc" ? "desc" : "asc" }
+      : { columna, direccion: "asc" }
+  );
+};
 
   // ── Carga de datos ──────────────────────────────────────────────────────────
   const cargarInventario = async () => {
@@ -231,33 +256,24 @@ export default function Inventario({ onNavegar, usuario }) {
         params.append("orderDir", orden.direccion);
       }
 
-      if (busqueda.trim() !== "") {
-        params.append("buscar", busqueda.trim());
-      }
-
       const response = await axios.get(`/inventario?${params.toString()}`);
 
-      const lista = Array.isArray(response.data.datos)
-        ? response.data.datos
-        : Array.isArray(response.data)
-        ? response.data
-        : [];
+      const lista = response.data.datos || response.data;
 
       const datos = lista.map((item) => ({
         id: item.id_inventario,
+        codigo_barras: item.codigo_barras || "",
         nombre: item.producto,
-        vencimiento: item.fecha_vencimiento
-          ? item.fecha_vencimiento.split("T")[0]
-          : "",
+        vencimiento: item.fecha_vencimiento.split("T")[0],
         cantidad: item.cantidad,
-        estado: item.estado ? item.estado.toLowerCase() : "verde",
+        estado: item.estado.toLowerCase(),
       }));
 
       setProductos(datos);
 
       if (response.data.total !== undefined) {
         setTotalRegistros(response.data.total);
-        setTotalPaginas(response.data.totalPaginas || 1);
+        setTotalPaginas(response.data.totalPaginas);
       }
 
       if (response.data.resumen) {
@@ -265,20 +281,15 @@ export default function Inventario({ onNavegar, usuario }) {
           totalProductos: Number(response.data.resumen.totalProductos || 0),
           totalUnidades: Number(response.data.resumen.totalUnidades || 0),
           verdesProductos: Number(response.data.resumen.verdesProductos || 0),
-          amarillosProductos: Number(
-            response.data.resumen.amarillosProductos || 0
-          ),
+          amarillosProductos: Number(response.data.resumen.amarillosProductos || 0),
           rojosProductos: Number(response.data.resumen.rojosProductos || 0),
           verdesUnidades: Number(response.data.resumen.verdesUnidades || 0),
-          amarillosUnidades: Number(
-            response.data.resumen.amarillosUnidades || 0
-          ),
+          amarillosUnidades: Number(response.data.resumen.amarillosUnidades || 0),
           rojosUnidades: Number(response.data.resumen.rojosUnidades || 0),
         });
       }
     } catch (err) {
       console.error("Error cargando inventario:", err);
-      setProductos([]);
     }
   };
 
@@ -309,7 +320,7 @@ export default function Inventario({ onNavegar, usuario }) {
 
   useEffect(() => {
     cargarInventario();
-  }, [sucursalActiva, pagina, limite, orden, busqueda]);
+  }, [sucursalActiva, pagina, limite, orden]);
 
   // ── Retirar producto ────────────────────────────────────────────────────────
   const abrirModalRetiro = (producto) => {
@@ -496,10 +507,14 @@ export default function Inventario({ onNavegar, usuario }) {
 
   // ── Totales ─────────────────────────────────────────────────────────────────
   const total =
-    modo === "productos" ? resumen.totalProductos : resumen.totalUnidades;
+    modo === "productos"
+      ? resumen.totalProductos
+      : resumen.totalUnidades;
 
   const verdes =
-    modo === "productos" ? resumen.verdesProductos : resumen.verdesUnidades;
+    modo === "productos"
+      ? resumen.verdesProductos
+      : resumen.verdesUnidades;
 
   const amarillos =
     modo === "productos"
@@ -507,103 +522,61 @@ export default function Inventario({ onNavegar, usuario }) {
       : resumen.amarillosUnidades;
 
   const rojos =
-    modo === "productos" ? resumen.rojosProductos : resumen.rojosUnidades;
+    modo === "productos"
+      ? resumen.rojosProductos
+      : resumen.rojosUnidades;
 
-  const productoOrdenados = [...productos].sort((a, b) => {
-    const { columna, direccion } = orden;
-    const mult = direccion === "asc" ? 1 : -1;
-
-    if (columna === "nombre") {
-      return mult * a.nombre.localeCompare(b.nombre);
-    }
-
-    if (columna === "vencimiento") {
-      return mult * (new Date(a.vencimiento) - new Date(b.vencimiento));
-    }
-
-    if (columna === "cantidad") {
-      return mult * (a.cantidad - b.cantidad);
-    }
-
-    if (columna === "estado") {
-      const prioridad = {
-        rojo: 0,
-        amarillo: 1,
-        verde: 2,
-      };
-
-      return mult * (prioridad[a.estado] - prioridad[b.estado]);
-    }
-
-    return 0;
+  // ── Búsqueda / escaneo por código de barras ─────────────────────────────────
+  const productosFiltrados = productos.filter((p) => {
+    if (!busqueda.trim()) return true;
+    const termino = busqueda.trim().toLowerCase();
+    return (
+      p.nombre.toLowerCase().includes(termino) ||
+      (p.codigo_barras && p.codigo_barras.toLowerCase().includes(termino))
+    );
   });
-
+ 
+  const manejarBusqueda = (codigo) => {
+    setBusqueda(codigo);
+ 
+    const encontrado = productos.find(
+      (p) =>
+        p.codigo_barras &&
+        p.codigo_barras.toLowerCase() === codigo.trim().toLowerCase()
+    );
+ 
+    if (encontrado) {
+      abrirModalEditar(encontrado);
+    }
+  };
+ 
+  const handleBusquedaKeyDown = (e) => {
+    if (e.key === "Enter") {
+      manejarBusqueda(busqueda);
+    }
+  };
+ 
+  const handleCamaraDetectado = (codigo) => {
+    setCamaraAbierta(false);
+    manejarBusqueda(codigo);
+  };
+  
+  // El backend ya devuelve los datos ordenados por nombre/vencimiento/cantidad
+  // (orderBy/orderDir en cargarInventario), así que solo hace falta reordenar acá
+  // para "estado": el backend lo aproxima por fecha_vencimiento, pero el orden
+  // real de semáforo (rojo/amarillo/verde) depende también de dias_alerta.
+  const productoOrdenados =
+    orden.columna === "estado"
+      ? [...productosFiltrados].sort((a, b) => {
+          const mult = orden.direccion === "asc" ? 1 : -1;
+          const prioridad = { rojo: 0, amarillo: 1, verde: 2 };
+          return mult * (prioridad[a.estado] - prioridad[b.estado]);
+        })
+      : productosFiltrados;
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="layout">
-      <div className="sidebar">
-        <div className="sidebar-logo">GóndolaPro</div>
-
-        <nav className="sidebar-nav">
-          <a className="nav-item" onClick={() => onNavegar("inicio")}>
-            🏠 Inicio
-          </a>
-
-          <a className="nav-item active">📦 Inventario</a>
-
-          <a className="nav-item" onClick={() => onNavegar("reportes")}>
-            📊 Reportes
-          </a>
-
-          {usuario?.rol !== "Operario" && (
-            <a className="nav-item" onClick={() => onNavegar("usuarios")}>
-              👤 Usuarios
-            </a>
-          )}
-        </nav>
-      </div>
-
-      {menuAbierto && (
-        <div className="menu-mobile">
-          <div className="menu-mobile-header">
-            <span>GóndolaPro</span>
-            <span
-              onClick={() => setMenuAbierto(false)}
-              className="menu-cerrar"
-            >
-              ✕
-            </span>
-          </div>
-
-          <nav className="menu-mobile-nav">
-            <a className="nav-item" onClick={() => onNavegar("inicio")}>
-              🏠 Inicio
-            </a>
-
-            <a className="nav-item active">📦 Inventario</a>
-
-            <a className="nav-item" onClick={() => onNavegar("reportes")}>
-              📊 Reportes
-            </a>
-
-            {usuario?.rol !== "Operario" && (
-              <a className="nav-item" onClick={() => onNavegar("usuarios")}>
-                👤 Usuarios
-              </a>
-            )}
-          </nav>
-        </div>
-      )}
-
-      <div className="contenido">
-        <div className="topbar">
-          <span className="topbar-logo">GóndolaPro</span>
-
-          <span className="topbar-menu" onClick={() => setMenuAbierto(true)}>
-            ☰
-          </span>
-        </div>
-
+    <Layout activo="inventario" usuario={usuario} onNavegar={onNavegar}>
+        {/* Header de página */}
         <div className="page-header">
           <div className="title-sucursales">
             <h1 className="page-title">Inventario</h1>
@@ -644,7 +617,25 @@ export default function Inventario({ onNavegar, usuario }) {
             </div>
           </div>
 
-          <div className="header-actions header-actions-inventario">
+          <div className="header-actions">
+            <div className="busqueda-barras">
+              <input
+                className="form-input"
+                type="text"
+                placeholder="Buscar o escanear código..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                onKeyDown={handleBusquedaKeyDown}
+              />
+ 
+              <button
+                className="btn-modo"
+                onClick={() => setCamaraAbierta(true)}
+                title="Escanear con cámara"
+              >
+                📷
+              </button>
+            </div>
             <button
               className="btn-modo"
               onClick={() =>
@@ -659,35 +650,11 @@ export default function Inventario({ onNavegar, usuario }) {
                 + Nuevo producto
               </button>
             )}
-
-            <div className="busqueda-inventario">
-              <input
-                className="input-busqueda-inventario"
-                type="text"
-                placeholder="Buscar producto, código, departamento o sucursal..."
-                value={busqueda}
-                onChange={(e) => {
-                  setBusqueda(e.target.value);
-                  setPagina(1);
-                }}
-              />
-
-              {busqueda && (
-                <button
-                  className="btn-limpiar-busqueda"
-                  onClick={() => {
-                    setBusqueda("");
-                    setPagina(1);
-                  }}
-                >
-                  ✕
-                </button>
-              )}
-            </div>
           </div>
         </div>
 
-        <div className="cards-grid cards-grid-inventario">
+        {/* Cards */}
+        <div className="cards-grid">
           <div className="card">
             <p className="card-label">Total {modo}</p>
             <p className="card-valor">{total}</p>
@@ -709,72 +676,70 @@ export default function Inventario({ onNavegar, usuario }) {
           </div>
         </div>
 
-        <div className="tabla-container">
-          <div className="tabla-header tabla-header-extendido">
-            <span
-              className="col-ordenable"
+        {/* Ordenamiento mobile */}
+        <div className="orden-mobile">
+          <span className="orden-label">Ordenar por:</span>
+          <div className="orden-botones">
+            <button
+              className={`btn-orden ${orden.columna === "nombre" ? "activo" : ""}`}
               onClick={() => toggleOrden("nombre")}
             >
-              Producto{" "}
-              {orden.columna === "nombre"
-                ? orden.direccion === "asc"
-                  ? "↑"
-                  : "↓"
-                : "↕"}
-            </span>
-
-            <span
-              className="col-ordenable"
+              Nombre {orden.columna === "nombre" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+            </button>
+            <button
+              className={`btn-orden ${orden.columna === "vencimiento" ? "activo" : ""}`}
               onClick={() => toggleOrden("vencimiento")}
             >
-              Vencimiento{" "}
-              {orden.columna === "vencimiento"
-                ? orden.direccion === "asc"
-                  ? "↑"
-                  : "↓"
-                : "↕"}
-            </span>
-
-            <span
-              className="col-ordenable"
+              Vencimiento {orden.columna === "vencimiento" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+            </button>
+            <button
+              className={`btn-orden ${orden.columna === "cantidad" ? "activo" : ""}`}
               onClick={() => toggleOrden("cantidad")}
             >
-              Cantidad{" "}
-              {orden.columna === "cantidad"
-                ? orden.direccion === "asc"
-                  ? "↑"
-                  : "↓"
-                : "↕"}
-            </span>
-
-            <span
-              className="col-ordenable"
+              Cantidad {orden.columna === "cantidad" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+            </button>
+            <button
+              className={`btn-orden ${orden.columna === "estado" ? "activo" : ""}`}
               onClick={() => toggleOrden("estado")}
             >
-              Estado{" "}
-              {orden.columna === "estado"
-                ? orden.direccion === "asc"
-                  ? "↑"
-                  : "↓"
-                : "↕"}
-            </span>
+              Estado {orden.columna === "estado" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+            </button>
+          </div>
+        </div>
 
+        {/* Tabla */}
+        <div className="tabla-container">
+          <div className="tabla-header tabla-header-extendido">
+            <span className="col-ordenable" onClick={() => toggleOrden("nombre")}>
+              Producto {orden.columna === "nombre" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
+            </span>
+            <span className="col-ordenable" onClick={() => toggleOrden("vencimiento")}>
+              Vencimiento {orden.columna === "vencimiento" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
+            </span>
+            <span className="col-ordenable" onClick={() => toggleOrden("cantidad")}>
+              Cantidad {orden.columna === "cantidad" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
+            </span>
+            <span className="col-ordenable" onClick={() => toggleOrden("estado")}>
+              Estado {orden.columna === "estado" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
+            </span>
             <span>Acciones</span>
           </div>
 
           {productoOrdenados.length === 0 ? (
-            <div className="tabla-fila tabla-fila-extendida">
-              <span>No hay productos para mostrar</span>
-              <span>-</span>
-              <span>-</span>
-              <span>-</span>
-              <span>-</span>
-            </div>
+        <div className="tabla-fila tabla-fila-extendida">
+          <span>No hay productos para mostrar</span>
+          <span>-</span>
+          <span>-</span>
+          <span>-</span>
+          <span>-</span>
+        </div>
           ) : (
             productoOrdenados.map((p) => (
               <div className="tabla-fila tabla-fila-extendida" key={p.id}>
                 <span className="producto-nombre">{p.nombre}</span>
+
                 <span>{p.vencimiento}</span>
+
                 <span>{p.cantidad} u.</span>
 
                 <span className={`badge badge-${p.estado}`}>
@@ -785,7 +750,7 @@ export default function Inventario({ onNavegar, usuario }) {
 
                 <span className="acciones-grupo">
                   <button
-                    className="btn-agregar"
+                    className="btn-retirar"
                     onClick={() => abrirModalRetiro(p)}
                     disabled={p.cantidad <= 0}
                   >
@@ -811,6 +776,7 @@ export default function Inventario({ onNavegar, usuario }) {
           )}
         </div>
 
+        {/* Paginación */}
         <div className="paginacion-container">
           <div className="paginacion-info">
             <span>
@@ -859,8 +825,8 @@ export default function Inventario({ onNavegar, usuario }) {
             </button>
           </div>
         </div>
-      </div>
 
+      {/* ── Modal: Retirar producto ── */}
       {modalRetiro && itemSeleccionado && (
         <Modal
           titulo={`Retirar: ${itemSeleccionado.nombre}`}
@@ -869,12 +835,9 @@ export default function Inventario({ onNavegar, usuario }) {
           <div className="modal-body">
             <div className="retiro-info">
               <p className="retiro-producto">{itemSeleccionado.nombre}</p>
-
               <p className="retiro-detalle">
-                Cantidad disponible:{" "}
-                <strong>{itemSeleccionado.cantidad} u.</strong>
+                Cantidad disponible: <strong>{itemSeleccionado.cantidad} u.</strong>
               </p>
-
               <p className="retiro-detalle">
                 Vencimiento: <strong>{itemSeleccionado.vencimiento}</strong>
               </p>
@@ -882,7 +845,6 @@ export default function Inventario({ onNavegar, usuario }) {
 
             <div className="form-grupo">
               <label className="form-label">Cantidad a retirar *</label>
-
               <input
                 className="form-input"
                 type="number"
@@ -897,7 +859,6 @@ export default function Inventario({ onNavegar, usuario }) {
 
             <div className="form-grupo">
               <label className="form-label">Motivo *</label>
-
               <select
                 className="form-input"
                 name="motivo"
@@ -934,6 +895,7 @@ export default function Inventario({ onNavegar, usuario }) {
         </Modal>
       )}
 
+      {/* ── Modal: Nuevo producto ── */}
       {modalNuevo && (
         <Modal
           titulo="Nuevo producto en inventario"
@@ -943,21 +905,18 @@ export default function Inventario({ onNavegar, usuario }) {
             <AutoComplete
               label="Producto"
               placeholder="Buscar producto..."
-              opciones={listaProductos.map((p) => {
-                const codigo = p.codigo_barra || p.codigo_barras;
-
-                return {
-                  id: p.id_producto,
-                  label: codigo ? `${p.nombre} (${codigo})` : p.nombre,
-                };
-              })}
+              opciones={listaProductos.map((p) => ({
+                id: p.id_producto,
+                label: p.codigo_barras
+                  ? `${p.nombre} (${p.codigo_barras})`
+                  : p.nombre,
+              }))}
               valorTexto={textoProducto}
               onSeleccionar={(id, label) => {
                 setFormNuevo({
                   ...formNuevo,
                   id_producto: id,
                 });
-
                 setTextoProducto(label);
               }}
             />
@@ -975,14 +934,12 @@ export default function Inventario({ onNavegar, usuario }) {
                   ...formNuevo,
                   id_sucursal: id,
                 });
-
                 setTextoSucursal(label);
               }}
             />
 
             <div className="form-grupo">
               <label className="form-label">Fecha de vencimiento *</label>
-
               <input
                 className="form-input"
                 type="date"
@@ -994,7 +951,6 @@ export default function Inventario({ onNavegar, usuario }) {
 
             <div className="form-grupo">
               <label className="form-label">Cantidad *</label>
-
               <input
                 className="form-input"
                 type="number"
@@ -1028,6 +984,7 @@ export default function Inventario({ onNavegar, usuario }) {
         </Modal>
       )}
 
+      {/* ── Modal: Editar ── */}
       {modalEditar && itemSeleccionado && (
         <Modal
           titulo={`Editar: ${itemSeleccionado.nombre}`}
@@ -1036,7 +993,6 @@ export default function Inventario({ onNavegar, usuario }) {
           <div className="modal-body">
             <div className="form-grupo">
               <label className="form-label">Fecha de vencimiento *</label>
-
               <input
                 className="form-input"
                 type="date"
@@ -1048,7 +1004,6 @@ export default function Inventario({ onNavegar, usuario }) {
 
             <div className="form-grupo">
               <label className="form-label">Cantidad *</label>
-
               <input
                 className="form-input"
                 type="number"
@@ -1081,6 +1036,15 @@ export default function Inventario({ onNavegar, usuario }) {
         </Modal>
       )}
 
+      {/* ── Modal: Escanear con cámara ── */}
+      {camaraAbierta && (
+        <EscanerCamara
+          onDetectado={handleCamaraDetectado}
+          onCerrar={() => setCamaraAbierta(false)}
+        />
+      )}      
+
+      {/* ── Modal: Confirmar eliminar ── */}
       {modalEliminar && itemSeleccionado && (
         <Modal
           titulo="Confirmar eliminación"
@@ -1112,6 +1076,6 @@ export default function Inventario({ onNavegar, usuario }) {
           </div>
         </Modal>
       )}
-    </div>
+    </Layout>
   );
 }

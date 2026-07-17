@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "../api/axios";
+import Layout from "../components/Sidebar";
 import "./usuarios.css";
 
-export default function Usuarios({ onNavegar }) {
+export default function Usuarios({ onNavegar, usuario }) {
   const [usuarios, setUsuarios] = useState([]);
-  const [menuAbierto, setMenuAbierto] = useState(false);
 
   useEffect(() => {
     const cargarUsuarios = async () => {
@@ -52,50 +52,7 @@ export default function Usuarios({ onNavegar }) {
 };
 
   return (
-    <div className="layout">
-
-      <div className="sidebar">
-        <div className="sidebar-logo">GóndolaPro</div>
-        <nav className="sidebar-nav">
-          <a className="nav-item" onClick={() => onNavegar("inicio")}>🏠 Inicio</a>
-          <a className="nav-item" onClick={() => onNavegar("inventario")}>📦 Inventario</a>
-          <a className="nav-item" onClick={() => onNavegar("reportes")}>📊 Reportes</a>
-          <a className="nav-item active">👤 Usuarios</a>
-        </nav>
-      </div>
-
-      {menuAbierto && (
-        <div className="menu-mobile">
-          <div className="menu-mobile-header">
-            <span>GóndolaPro</span>
-            <span
-              onClick={() => setMenuAbierto(false)}
-              className="menu-cerrar"
-            >
-              ✕
-            </span>
-          </div>
-
-          <nav className="menu-mobile-nav">
-            <a className="nav-item" onClick={() => onNavegar("inicio")}>🏠 Inicio</a>
-            <a className="nav-item" onClick={() => onNavegar("inventario")}>📦 Inventario</a>
-            <a className="nav-item" onClick={() => onNavegar("reportes")}>📊 Reportes</a>
-            <a className="nav-item active">👤 Usuarios</a>
-          </nav>
-        </div>
-      )}
-
-      <div className="contenido">
-
-        <div className="topbar">
-          <span className="topbar-logo">GóndolaPro</span>
-          <span
-            className="topbar-menu"
-            onClick={() => setMenuAbierto(true)}
-          >
-            ☰
-          </span>
-        </div>
+    <Layout activo="usuarios" usuario={usuario} onNavegar={onNavegar}>
 
         <div className="page-header">
           <h1 className="page-title">Usuarios</h1>
@@ -154,7 +111,6 @@ export default function Usuarios({ onNavegar }) {
 
         </div>
 
-      </div>
-    </div>
+    </Layout>
   );
 }
