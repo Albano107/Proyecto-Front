@@ -232,12 +232,14 @@ export default function Inventario({ onNavegar, usuario }) {
   const [camaraAbierta, setCamaraAbierta] = useState(false);
 
   const toggleOrden = (columna) => {
-  setOrden((prev) =>
-    prev.columna === columna
-      ? { columna, direccion: prev.direccion === "asc" ? "desc" : "asc" }
-      : { columna, direccion: "asc" }
-  );
-};
+    setOrden((prev) =>
+      prev.columna === columna
+        ? { columna, direccion: prev.direccion === "asc" ? "desc" : "asc" }
+        : { columna, direccion: "asc" }
+    );
+
+    setPagina(1);
+  };
 
   // ── Carga de datos ──────────────────────────────────────────────────────────
   const cargarInventario = async () => {
@@ -256,6 +258,12 @@ export default function Inventario({ onNavegar, usuario }) {
         params.append("orderDir", orden.direccion);
       }
 
+      // Enviamos la búsqueda al backend para que pueda buscar por
+      // producto, código de barras, departamento o sucursal.
+      if (busqueda.trim() !== "") {
+        params.append("buscar", busqueda.trim());
+      }
+
       const response = await axios.get(`/inventario?${params.toString()}`);
 
       const lista = response.data.datos || response.data;
@@ -264,6 +272,8 @@ export default function Inventario({ onNavegar, usuario }) {
         id: item.id_inventario,
         codigo_barras: item.codigo_barras || "",
         nombre: item.producto,
+        departamento: item.departamento || "",
+        sucursal: item.sucursal || "",
         vencimiento: item.fecha_vencimiento.split("T")[0],
         cantidad: item.cantidad,
         estado: item.estado.toLowerCase(),
@@ -320,7 +330,7 @@ export default function Inventario({ onNavegar, usuario }) {
 
   useEffect(() => {
     cargarInventario();
-  }, [sucursalActiva, pagina, limite, orden]);
+  }, [sucursalActiva, pagina, limite, orden, busqueda]);
 
   // ── Retirar producto ────────────────────────────────────────────────────────
   const abrirModalRetiro = (producto) => {
@@ -529,15 +539,20 @@ export default function Inventario({ onNavegar, usuario }) {
   // ── Búsqueda / escaneo por código de barras ─────────────────────────────────
   const productosFiltrados = productos.filter((p) => {
     if (!busqueda.trim()) return true;
+
     const termino = busqueda.trim().toLowerCase();
+
     return (
       p.nombre.toLowerCase().includes(termino) ||
-      (p.codigo_barras && p.codigo_barras.toLowerCase().includes(termino))
+      (p.codigo_barras && p.codigo_barras.toLowerCase().includes(termino)) ||
+      (p.departamento && p.departamento.toLowerCase().includes(termino)) ||
+      (p.sucursal && p.sucursal.toLowerCase().includes(termino))
     );
   });
  
   const manejarBusqueda = (codigo) => {
     setBusqueda(codigo);
+    setPagina(1);
  
     const encontrado = productos.find(
       (p) =>
@@ -624,7 +639,10 @@ export default function Inventario({ onNavegar, usuario }) {
                 type="text"
                 placeholder="Buscar o escanear código..."
                 value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
+                onChange={(e) => {
+                  setBusqueda(e.target.value);
+                  setPagina(1);
+                }}
                 onKeyDown={handleBusquedaKeyDown}
               />
  
