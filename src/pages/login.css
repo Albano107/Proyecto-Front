@@ -1,3 +1,5 @@
+/* GóndolaPro — Login, dirección 5a "Parte del día" (lenguaje visual 3c "Cartel de neón") */
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -5,223 +7,658 @@
 }
 
 .login-bg {
+  --negro: #000000;
+  --panel: #0d0d0d;
+  --campo: #1a1a1a;
+  --linea: #1f1f1f;
+  --gris: #8a8a8a;
+  --blanco: #ffffff;
+  --rojo: #e1222a;
+  --amarillo: #f1bd30;
+  --verde: #0ba852;
+
   min-height: 100vh;
-  background-color: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+  background: var(--negro);
+  font-family: Archivo, system-ui, sans-serif;
 }
 
-.login-card {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 800px;
-  border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
-  overflow: hidden;
-  background: white;
+.login-bg button {
+  font-family: inherit;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 90ms linear, filter 90ms linear;
 }
 
-.login-left {
-  background-color: #064e3b;
-  color: white;
-  padding: 2.5rem 2rem;
-  width: 45%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.login-brand {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.login-brand-sub {
-  font-size: 0.875rem;
-  opacity: 0.7;
-  margin-bottom: 2.5rem;
-}
-
-.login-features {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.feature-icon {
-  font-size: 1.25rem;
-  margin-top: 2px;
-}
-
-.feature-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.feature-desc {
-  font-size: 0.75rem;
-  opacity: 0.7;
-}
-
-.login-right {
-  padding: 2.5rem 2rem;
-  width: 55%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.login-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 4px;
-}
-
-.login-subtitle {
-  font-size: 0.875rem;
-  color: #9ca3af;
-  margin-bottom: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #4b5563;
-  margin-bottom: 4px;
-}
-
-.form-group input {
-  width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.875rem;
+.login-bg input {
+  font-family: inherit;
+  border: 0;
+  border-radius: 0;
   outline: none;
 }
 
-.form-group input:focus {
-  border-color: #059669;
+.login-shell {
+  display: flex;
+  min-height: 100vh;
 }
 
-.btn-login {
-  width: 100%;
-  background-color: #059669;
-  color: white;
-  font-weight: 600;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  cursor: pointer;
+/* ============ Columna izquierda — parte del día (≥1024px) ============ */
+
+.parte-dia {
+  width: 60%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.btn-login:hover {
-  background-color: #047857;
+.parte-header {
+  padding: 30px 34px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.divider {
-  text-align: center;
-  color: #9ca3af;
-  font-size: 0.875rem;
-  margin: 1.25rem 0;
+.parte-titulo {
+  font: 900 46px/0.94 Archivo, sans-serif;
+  letter-spacing: -0.05em;
+  color: var(--blanco);
+}
+
+.parte-fecha,
+.mobile-fecha {
+  font: 700 11px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--gris);
+}
+
+/* El slider (label + bandas + puntos) se ancla como un bloque al fondo de
+   la columna; en mobile no hay espacio extra que llenar, así que el
+   margin-top:auto no mueve nada ahí. position:relative lo hace el
+   contenedor de los puntos, que flotan superpuestos (ver .parte-dots). */
+.parte-bloque {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.parte-slide-label {
+  padding: 0 34px 6px;
+  font: 800 11px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--gris);
+}
+
+.bandas {
+  display: flex;
+  flex-direction: column;
+}
+
+.banda {
+  padding: 22px 34px;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+
+.banda-numero {
+  font: 900 60px/0.95 Archivo, sans-serif;
+  letter-spacing: -0.05em;
+  color: var(--blanco);
+}
+
+.banda-etiqueta {
+  font: 800 13px/1.2 Archivo, sans-serif;
+  letter-spacing: 0.02em;
+  color: var(--blanco);
+}
+
+/* El total no es un estado del semáforo — sin color de alerta, panel neutro
+   para no competir visualmente con vencidos/por vencer/en regla. */
+.banda-total {
+  background: var(--panel);
+}
+
+/* Estilo "historia" (Instagram/stories): puntos chicos y centrados, el
+   activo más grande y en color — superpuestos sobre el borde inferior del
+   parte del día en vez de ocupar su propio renglón. El fondo oscuro
+   traslúcido es lo que los hace legibles caiga donde caiga (rojo, amarillo,
+   verde o el panel neutro del total). */
+.parte-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.4);
 }
 
-.divider::before,
-.divider::after {
+/* El área clickeable (22×22px) es mucho más grande que el punto que se ve
+   (vía ::before) — fácil de tocar/clickear sin que el indicador ocupe
+   espacio de más. */
+.parte-dot {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.parte-dot::before {
   content: "";
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 90ms linear;
+}
+
+.parte-dot:hover::before {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.parte-dot-activo::before,
+.parte-dot-activo:hover::before {
+  width: 9px;
+  height: 9px;
+  background: var(--amarillo);
+}
+
+/* ============ Bloque superior mobile (<1024px) ============ */
+
+.mobile-top {
+  display: none;
+}
+
+.mobile-header {
+  padding: 20px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-fecha {
+  font-size: 10.5px;
+}
+
+.mobile-titulo-error {
+  font: 900 27px/0.98 Archivo, sans-serif;
+  letter-spacing: -0.05em;
+  color: var(--blanco);
+}
+
+/* ============ Error ============ */
+
+.barra-error {
+  background: var(--rojo);
+  padding: 17px 18px;
+}
+
+.barra-error-texto {
+  display: block;
+  font: 900 12.5px/1.35 Archivo, sans-serif;
+  letter-spacing: 0.06em;
+  color: var(--blanco);
+}
+
+/* ============ Columna derecha / main ============ */
+
+.login-right {
   flex: 1;
-  height: 1px;
-  background-color: #e5e7eb;
+  min-width: 0;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
 }
 
-.btn-pin {
+.vista-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding: 32px 40px;
+}
+
+.login-right-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   width: 100%;
-  background-color: white;
-  color: #059669;
-  font-weight: 600;
-  padding: 10px;
-  border: 1px solid #059669;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ---- Título ---- */
+
+.titulo-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-titulo {
+  font: 900 32px/1 Archivo, sans-serif;
+  letter-spacing: -0.04em;
+  color: var(--blanco);
+}
+
+.login-subtitulo {
+  font: 700 12.5px/1 Archivo, sans-serif;
+  color: var(--gris);
+}
+
+/* ---- Campos ---- */
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.campo-label {
+  font: 800 11px/1 Archivo, sans-serif;
+  letter-spacing: 0.16em;
+  color: var(--gris);
+}
+
+.campo-input {
+  display: block;
+  width: 100%;
+  background: var(--campo);
+  padding: 15px 16px;
+  font: 400 14px "IBM Plex Mono", monospace;
+  color: var(--blanco);
+}
+
+.campo-input:focus,
+.campo-input:focus-visible {
+  box-shadow: inset 0 -3px 0 var(--amarillo);
+}
+
+.campo-input::placeholder {
+  color: #5a5a5a;
+}
+
+.campo-password {
+  display: flex;
+  align-items: center;
+  background: var(--campo);
+}
+
+.campo-password:focus-within {
+  box-shadow: inset 0 -3px 0 var(--amarillo);
+}
+
+.campo-input-password {
+  flex: 1;
+  letter-spacing: 0.16em;
+}
+
+.campo-input-password:focus,
+.campo-input-password:focus-visible {
+  box-shadow: none;
+}
+
+.btn-ver {
+  background: transparent;
+  padding: 0 16px;
+  font: 900 11px/1 Archivo, sans-serif;
+  letter-spacing: 0.1em;
+  color: var(--amarillo);
+  align-self: stretch;
+}
+
+.btn-ver:hover {
+  filter: brightness(1.2);
+}
+
+/* ---- Botón INGRESAR ---- */
+
+.btn-ingresar {
+  width: 100%;
+  background: var(--verde);
+  color: #000;
+  font: 900 15px/1 Archivo, sans-serif;
+  letter-spacing: -0.01em;
+  padding: 19px 0;
+}
+
+.btn-ingresar:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.btn-ingresar:active:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.btn-ingresar:disabled {
+  background: var(--campo);
+  color: var(--gris);
+  cursor: not-allowed;
+}
+
+/* ---- Separador ---- */
+
+.separador {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.separador-linea {
+  flex: 1;
+  height: 2px;
+  background: var(--linea);
+  display: block;
+}
+
+.separador-o {
+  font: 700 10px "IBM Plex Mono", monospace;
+  letter-spacing: 0.18em;
+  color: var(--gris);
+}
+
+/* ---- Bloque PIN (formulario unificado / escritorio) ---- */
+
+.bloque-pin-desktop {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pin-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.pin-fila {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.btn-pin-desktop {
+  flex: 1;
+  background: var(--blanco);
+  color: #000;
+  font: 900 12.5px/1 Archivo, sans-serif;
+}
+
+.btn-pin-desktop:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.btn-pin-desktop:disabled {
+  background: var(--campo);
+  color: var(--gris);
+  cursor: not-allowed;
+}
+
+.volver-pin-mobil {
+  display: none;
+  width: 100%;
+  background: transparent;
+  color: var(--gris);
+  font: 700 12.5px/1 Archivo, sans-serif;
+  padding: 4px 0;
+  text-align: center;
+}
+
+/* ---- Casillas de PIN (compartidas desktop/mobile) ---- */
+
+.pin-casillas {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.pin-casillas-desktop {
+  flex-shrink: 0;
+}
+
+.pin-casillas-mobile {
+  flex: 1;
+}
+
+.pin-casilla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 22px "IBM Plex Mono", monospace;
+  color: var(--blanco);
+}
+
+.pin-casillas-desktop .pin-casilla {
+  width: 54px;
+  height: 54px;
+  background: var(--campo);
+}
+
+.pin-casillas-mobile .pin-casilla {
+  flex: 1;
+  height: 60px;
+  background: var(--panel);
+  font-size: 25px;
+}
+
+.pin-casilla-activa {
+  box-shadow: inset 0 -3px 0 var(--amarillo);
+}
+
+.pin-casillas-mobile .pin-casilla-activa {
+  box-shadow: inset 0 -4px 0 var(--amarillo);
+}
+
+.pin-casillas-error .pin-casilla {
+  color: var(--rojo);
+  box-shadow: inset 0 -3px 0 var(--rojo);
+}
+
+.pin-casillas-mobile.pin-casillas-error .pin-casilla {
+  box-shadow: inset 0 -4px 0 var(--rojo);
+}
+
+.pin-input-oculto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
   cursor: pointer;
+  font-size: 16px; /* evita el zoom automático de iOS al enfocar */
 }
 
-.btn-pin:hover {
-  background-color: #f0fdf4;
+/* ============ Vista PIN mobile (pantalla por defecto en teléfono) ============ */
+
+.vista-pin-mobil {
+  display: none;
 }
 
-.login-error {
-  color: #991b1b;
-  background-color: #fee2e2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
+.vista-pin-mobil.oculto {
+  display: none !important;
 }
 
-@media (max-width: 600px) {
-  .login-card {
+.vista-pin-mobil-inner {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.acceso-pin-titulo {
+  font: 900 24px/1 Archivo, sans-serif;
+  letter-spacing: -0.04em;
+  color: var(--blanco);
+}
+
+.teclado-numerico {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.tecla {
+  height: 58px;
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 22px "IBM Plex Mono", monospace;
+  color: var(--blanco);
+}
+
+.tecla:hover:not(:disabled) {
+  filter: brightness(1.3);
+}
+
+.tecla-vacia {
+  background: transparent;
+  cursor: default;
+  visibility: hidden;
+}
+
+.tecla-borrar {
+  background: var(--campo);
+  font-size: 17px;
+  color: var(--gris);
+}
+
+.vista-pin-mobil-pie {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.link-email-mobil {
+  background: transparent;
+  padding: 15px 18px;
+  text-align: center;
+  font: 700 12.5px/1 Archivo, sans-serif;
+  color: var(--gris);
+  width: 100%;
+}
+
+.btn-pin-mobil {
+  background: var(--amarillo);
+  color: #000;
+  padding: 22px 0;
+  text-align: center;
+  font: 900 16px/1 Archivo, sans-serif;
+  letter-spacing: -0.01em;
+  width: 100%;
+}
+
+.btn-pin-mobil:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.btn-pin-mobil:disabled {
+  background: var(--campo);
+  color: var(--gris);
+  cursor: not-allowed;
+}
+
+/* ============ Logotipo ChangoMas ============ */
+
+.logo-changomas {
+  display: inline-flex;
+  align-items: baseline;
+  font: 900 25px/1 Archivo, sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.logo-sm {
+  font-size: 18px;
+}
+
+.logo-chango {
+  color: var(--blanco);
+}
+
+.logo-mas {
+  position: relative;
+  color: var(--verde);
+}
+
+.logo-mas::after {
+  content: "";
+  position: absolute;
+  left: 58%;
+  transform: translateX(-50%);
+  top: 0.1em;
+  width: 0.34em;
+  height: 0.21em;
+  background: var(--amarillo);
+  clip-path: polygon(50% 0, 100% 100%, 66% 100%, 50% 30%, 34% 100%, 0 100%);
+}
+
+/* ============ Responsive: <1024px, la izquierda desaparece ============ */
+
+@media (max-width: 1023.98px) {
+  .login-shell {
     flex-direction: column;
   }
-  .login-left,
-  .login-right {
-    width: 100%;
-  }
-}
 
-@media (max-width: 768px) {
-  .login-bg {
-    align-items: center;
-    padding: 1rem;
-    min-height: 100vh;
-  }
-
-  .login-card {
-    flex-direction: column;
-    max-width: 400px;
-    width: 100%;
-  }
-
-  .login-left {
-    width: 100%;
-    padding: 1.25rem 1.5rem;
-  }
-
-  .login-right {
-    width: 100%;
-    padding: 1.5rem;
-  }
-
-  .login-features {
+  .parte-dia {
     display: none;
   }
 
-  .login-brand {
-    font-size: 1.2rem;
+  .mobile-top {
+    display: flex;
+    flex-direction: column;
   }
 
-  .login-brand-sub {
-    margin-bottom: 0;
+  .vista-form {
+    display: none;
+    padding: 0 18px 18px;
+  }
+
+  .vista-form.vista-form-mobil-activa {
+    display: flex;
+  }
+
+  .login-right-inner {
+    max-width: none;
+  }
+
+  .bloque-pin-desktop {
+    display: none;
+  }
+
+  .volver-pin-mobil {
+    display: block;
+  }
+
+  .vista-pin-mobil {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .login-titulo {
+    font-size: 26px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-top {
+    display: none;
+  }
+
+  .vista-pin-mobil {
+    display: none;
+  }
+
+  .volver-pin-mobil {
+    display: none;
   }
 }

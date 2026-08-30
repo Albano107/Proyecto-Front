@@ -61,6 +61,15 @@ docker run -p 80:80 gondolapro-front
 - Diseño responsive mobile-first con menú hamburguesa
 - Cliente Axios centralizado que adjunta el token guardado en `localStorage` a cada request
 
+## 📟 Parte del día (login)
+
+La columna izquierda del login pide `GET /sucursales/resumen` (público, sin
+token) y recorre en un slider automático el estado de **todas** las
+sucursales — vencidos / por vencer / en regla / total, una sucursal a la vez,
+con puntos de navegación para saltar manualmente. Si la petición falla, cae
+al último valor cacheado en `localStorage` desde la visita anterior a esta
+pantalla; si tampoco hay caché, las bandas no se muestran.
+
 ## 🔧 Lo que falta
 
 - Autenticación real con JWT persistente (hoy el login responde con los datos del usuario, pero el backend todavía no emite ni valida un token)
