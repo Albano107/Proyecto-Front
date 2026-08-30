@@ -388,7 +388,7 @@
 
 .tabla-header.tabla-header-extendido,
 .tabla-fila.tabla-fila-extendida {
-  grid-template-columns: 2fr 1fr 1fr 1fr 260px;
+  grid-template-columns: minmax(170px, 1.5fr) minmax(150px, 1.1fr) minmax(120px, 1fr) minmax(90px, 0.7fr) minmax(110px, 0.8fr) minmax(220px, 1.4fr);
 }
  
 /* Grupo de botones en la columna acciones */

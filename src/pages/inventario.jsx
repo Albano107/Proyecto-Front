@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import axios from "../api/axios";
 import { Html5Qrcode } from "html5-qrcode";
 import Layout from "../components/Sidebar";
+import CodigoBarras from "../components/CodigoBarras";
 import "./inventario.css";
 
 // ─── AutoComplete ─────────────────────────────────────────────────────────────
@@ -731,6 +732,10 @@ export default function Inventario({ onNavegar, usuario }) {
             <span className="col-ordenable" onClick={() => toggleOrden("nombre")}>
               Producto {orden.columna === "nombre" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
             </span>
+
+            <span>Código</span>
+
+
             <span className="col-ordenable" onClick={() => toggleOrden("vencimiento")}>
               Vencimiento {orden.columna === "vencimiento" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
             </span>
@@ -750,11 +755,15 @@ export default function Inventario({ onNavegar, usuario }) {
           <span>-</span>
           <span>-</span>
           <span>-</span>
+          <span>-</span>
         </div>
           ) : (
             productoOrdenados.map((p) => (
               <div className="tabla-fila tabla-fila-extendida" key={p.id}>
                 <span className="producto-nombre">{p.nombre}</span>
+                <span className="codigo-barras-columna">
+                  <CodigoBarras valor={p.codigo_barras} />
+                </span>
 
                 <span>{p.vencimiento}</span>
 

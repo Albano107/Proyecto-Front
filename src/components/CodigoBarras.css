@@ -1,0 +1,17 @@
+.codigo-barras-box {
+  max-width: 140px;
+  overflow: hidden;
+}
+
+.codigo-barras-box svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.codigo-barras-columna {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
