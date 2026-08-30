@@ -20,16 +20,16 @@ test("no permite ingresar con PIN incorrecto", async ({ page }) => {
   await page.goto("/");
 
   await page
-    .getByRole("textbox", { name: "••••", exact: true })
+    .getByRole("textbox", { name: "PIN de 4 dígitos" })
     .fill("9999");
 
   await page
-    .getByRole("button", { name: "Ingresar con PIN" })
+    .getByRole("button", { name: "INGRESAR CON PIN" })
     .click();
 
   // Si el PIN es incorrecto, seguimos en la pantalla de login.
   await expect(
-    page.getByRole("button", { name: "Ingresar con PIN" })
+    page.getByRole("button", { name: "INGRESAR CON PIN" })
   ).toBeVisible();
 
   // Y no debería aparecer el menú interno de Inventario.
@@ -39,14 +39,12 @@ test("no permite ingresar con PIN incorrecto", async ({ page }) => {
 test("no permite ingresar si el PIN está vacío", async ({ page }) => {
   await page.goto("/");
 
-  await page
-    .getByRole("button", { name: "Ingresar con PIN" })
-    .click();
+  const botonIngresar = page.getByRole("button", {
+    name: "INGRESAR CON PIN",
+  });
 
-  // Si no cargamos PIN, el sistema debe mantenerse en la pantalla de login.
-  await expect(
-    page.getByRole("button", { name: "Ingresar con PIN" })
-  ).toBeVisible();
+  // Si el PIN está vacío, el botón debe estar deshabilitado.
+  await expect(botonIngresar).toBeDisabled();
 
   await expect(page.getByText("📦 Inventario")).not.toBeVisible();
 });
