@@ -1,33 +1,30 @@
 import { test, expect } from "@playwright/test";
+import { loginConPin } from "./helpers/auth";
 
-// Función auxiliar para no repetir el login en todas las pruebas
-async function loginConPin(page) {
-  // Entramos a la aplicación
-  await page.goto("/");
+/*
+  Pruebas de Inventario.
 
-  // Escribimos el PIN de administrador
-  await page.getByRole("textbox", { name: "••••", exact: true }).fill("0000");
+  Objetivo:
+  Validar que la pantalla principal de inventario cargue correctamente,
+  que el buscador funcione y que los modales principales se puedan abrir
+  sin modificar datos reales.
+*/
 
-  // Presionamos el botón para ingresar
-  await page.getByRole("button", { name: "Ingresar con PIN" }).click();
-}
-
-test("el usuario puede ingresar y abrir Inventario", async ({ page }) => {
+test("Inventario carga correctamente", async ({ page }) => {
   await loginConPin(page);
 
-  // Entramos a la sección Inventario desde el menú
   await page.getByText("📦 Inventario").click();
 
-  // Verificamos que la pantalla de Inventario cargue
   await expect(page.getByRole("heading", { name: "Inventario" })).toBeVisible();
 
-  // Verificamos que el buscador esté visible
   await expect(
     page.getByRole("textbox", { name: "Buscar o escanear código..." })
   ).toBeVisible();
+
+  await expect(page.locator(".tabla-container")).toBeVisible();
 });
 
-test("el buscador de Inventario permite escribir una búsqueda", async ({ page }) => {
+test("buscador de Inventario filtra por nombre de producto", async ({ page }) => {
   await loginConPin(page);
 
   await page.getByText("📦 Inventario").click();
@@ -36,14 +33,15 @@ test("el buscador de Inventario permite escribir una búsqueda", async ({ page }
     name: "Buscar o escanear código...",
   });
 
-  // Escribimos una búsqueda real del sistema
   await buscador.fill("leche");
 
-  // Verificamos que el input conserve el texto escrito
   await expect(buscador).toHaveValue("leche");
+
+  // Validamos que la tabla siga mostrando resultados relacionados.
+  await expect(page.locator(".tabla-container")).toContainText(/leche/i);
 });
 
-test("el buscador de Inventario permite buscar por departamento", async ({ page }) => {
+test("buscador de Inventario filtra por departamento", async ({ page }) => {
   await loginConPin(page);
 
   await page.getByText("📦 Inventario").click();
@@ -52,9 +50,92 @@ test("el buscador de Inventario permite buscar por departamento", async ({ page 
     name: "Buscar o escanear código...",
   });
 
-  // Probamos una búsqueda por departamento
   await buscador.fill("lacteos");
 
-  // Verificamos que la búsqueda quedó aplicada en el campo
   await expect(buscador).toHaveValue("lacteos");
+
+  // El departamento no se muestra como columna, pero si la búsqueda funciona,
+  // la tabla no debería quedar vacía.
+  await expect(page.getByText("No hay productos para mostrar")).not.toBeVisible();
+});
+
+test("al borrar la búsqueda vuelve el listado de Inventario", async ({ page }) => {
+  await loginConPin(page);
+
+  await page.getByText("📦 Inventario").click();
+
+  const buscador = page.getByRole("textbox", {
+    name: "Buscar o escanear código...",
+  });
+
+  await buscador.fill("leche");
+  await expect(buscador).toHaveValue("leche");
+
+  await buscador.fill("");
+  await expect(buscador).toHaveValue("");
+
+  await expect(page.locator(".tabla-container")).toBeVisible();
+});
+
+test("abre y cierra el modal de Nuevo producto", async ({ page }) => {
+  await loginConPin(page);
+
+  await page.getByText("📦 Inventario").click();
+
+  await page.getByRole("button", { name: "+ Nuevo producto" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Nuevo producto en inventario" })
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Cancelar" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Nuevo producto en inventario" })
+  ).not.toBeVisible();
+});
+
+test("abre y cierra el modal de Retirar producto", async ({ page }) => {
+  await loginConPin(page);
+
+  await page.getByText("📦 Inventario").click();
+
+  await page.getByRole("button", { name: "Retirar" }).first().click();
+
+  await expect(page.getByText("Cantidad disponible:")).toBeVisible();
+  await expect(page.getByText("Motivo")).toBeVisible();
+
+  await page.getByRole("button", { name: "Cancelar" }).click();
+
+  await expect(page.getByText("Cantidad disponible:")).not.toBeVisible();
+});
+
+test("abre y cierra el modal de Editar producto", async ({ page }) => {
+  await loginConPin(page);
+
+  await page.getByText("📦 Inventario").click();
+
+  await page.getByRole("button", { name: "✏️ Editar" }).first().click();
+
+  // Limitamos la búsqueda al modal para evitar confundir
+  // la palabra "Cantidad" de la tabla con la del formulario.
+  const modal = page.locator(".modal-caja");
+
+  await expect(modal).toBeVisible();
+
+  await expect(
+    modal.getByText("Fecha de vencimiento *")
+  ).toBeVisible();
+
+  await expect(
+    modal.getByText("Cantidad *")
+  ).toBeVisible();
+
+  await expect(
+    modal.getByRole("button", { name: "Guardar cambios" })
+  ).toBeVisible();
+
+  await modal.getByRole("button", { name: "Cancelar" }).click();
+
+  await expect(modal).not.toBeVisible();
 });
