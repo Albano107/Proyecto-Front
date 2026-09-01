@@ -232,6 +232,11 @@ export default function Inventario({ onNavegar, usuario }) {
   const [busqueda, setBusqueda] = useState("");
   const [camaraAbierta, setCamaraAbierta] = useState(false);
 
+  // Filtro por semáforo
+  // null = muestra todos
+  // "amarillo" = muestra solo productos por vencer
+  const [filtroSemaforo, setFiltroSemaforo] = useState(null);
+
   const toggleOrden = (columna) => {
     setOrden((prev) =>
       prev.columna === columna
@@ -537,50 +542,49 @@ export default function Inventario({ onNavegar, usuario }) {
       ? resumen.rojosProductos
       : resumen.rojosUnidades;
 
-  // ── Búsqueda / escaneo por código de barras ─────────────────────────────────
+    // ── Búsqueda / escaneo por código de barras + filtro por semáforo ────────────
   const productosFiltrados = productos.filter((p) => {
-    if (!busqueda.trim()) return true;
-
     const termino = busqueda.trim().toLowerCase();
 
-    return (
+    const coincideBusqueda =
+      !termino ||
       p.nombre.toLowerCase().includes(termino) ||
       (p.codigo_barras && p.codigo_barras.toLowerCase().includes(termino)) ||
       (p.departamento && p.departamento.toLowerCase().includes(termino)) ||
-      (p.sucursal && p.sucursal.toLowerCase().includes(termino))
-    );
+      (p.sucursal && p.sucursal.toLowerCase().includes(termino));
+
+    const coincideSemaforo =
+      !filtroSemaforo || p.estado === filtroSemaforo;
+
+    return coincideBusqueda && coincideSemaforo;
   });
- 
+
   const manejarBusqueda = (codigo) => {
     setBusqueda(codigo);
     setPagina(1);
- 
+
     const encontrado = productos.find(
       (p) =>
         p.codigo_barras &&
         p.codigo_barras.toLowerCase() === codigo.trim().toLowerCase()
     );
- 
+
     if (encontrado) {
       abrirModalEditar(encontrado);
     }
   };
- 
+
   const handleBusquedaKeyDown = (e) => {
     if (e.key === "Enter") {
       manejarBusqueda(busqueda);
     }
   };
- 
+
   const handleCamaraDetectado = (codigo) => {
     setCamaraAbierta(false);
     manejarBusqueda(codigo);
   };
-  
-  // El backend ya devuelve los datos ordenados por nombre/vencimiento/cantidad
-  // (orderBy/orderDir en cargarInventario), así que solo hace falta reordenar acá
-  // para "estado": el backend lo aproxima por fecha_vencimiento, pero el orden
-  // real de semáforo (rojo/amarillo/verde) depende también de dias_alerta.
+
   const productoOrdenados =
     orden.columna === "estado"
       ? [...productosFiltrados].sort((a, b) => {
@@ -589,7 +593,122 @@ export default function Inventario({ onNavegar, usuario }) {
           return mult * (prioridad[a.estado] - prioridad[b.estado]);
         })
       : productosFiltrados;
-  // ── Render ──────────────────────────────────────────────────────────────────
+
+  const generarPdfPorVencer = () => {
+    const productosPorVencer = productoOrdenados.filter(
+      (p) => p.estado === "amarillo"
+    );
+
+    if (productosPorVencer.length === 0) {
+      alert("No hay productos por vencer para generar el PDF.");
+      return;
+    }
+
+    const fechaActual = new Date().toLocaleDateString("es-AR");
+
+    const filas = productosPorVencer
+      .map(
+        (p) => `
+          <tr>
+            <td>${p.nombre}</td>
+            <td>${p.codigo_barras || "-"}</td>
+            <td>${p.vencimiento}</td>
+            <td>${p.cantidad} u.</td>
+            <td>Por vencer</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    const ventana = window.open("", "_blank");
+
+    ventana.document.write(`
+      <!DOCTYPE html>
+      <html lang="es">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Reporte de productos por vencer</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 30px;
+              color: #222;
+            }
+
+            h1 {
+              margin-bottom: 5px;
+            }
+
+            .subtitulo {
+              margin-bottom: 20px;
+              color: #555;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+            }
+
+            th, td {
+              border: 1px solid #ccc;
+              padding: 8px;
+              text-align: left;
+              font-size: 13px;
+            }
+
+            th {
+              background: #f2f2f2;
+            }
+
+            .estado {
+              color: #b7791f;
+              font-weight: bold;
+            }
+
+            @media print {
+              button {
+                display: none;
+              }
+            }
+          </style>
+        </head>
+
+        <body>
+          <h1>Reporte de productos próximos a vencer</h1>
+          <p class="subtitulo">Generado el ${fechaActual}</p>
+
+          <p>
+            Total de productos por vencer:
+            <strong>${productosPorVencer.length}</strong>
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Código</th>
+                <th>Vencimiento</th>
+                <th>Cantidad</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filas}
+            </tbody>
+          </table>
+
+          <script>
+            window.onload = function () {
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+
+    ventana.document.close();
+  };
   return (
     <Layout activo="inventario" usuario={usuario} onNavegar={onNavegar}>
         {/* Header de página */}
@@ -672,28 +791,61 @@ export default function Inventario({ onNavegar, usuario }) {
           </div>
         </div>
 
-        {/* Cards */}
-        <div className="cards-grid">
-          <div className="card">
-            <p className="card-label">Total {modo}</p>
-            <p className="card-valor">{total}</p>
-          </div>
+       {/* Cards */}
+<div className="cards-grid">
+  <div className="card">
+    <p className="card-label">Total {modo}</p>
+    <p className="card-valor">{total}</p>
+  </div>
 
-          <div className="card">
-            <p className="card-label">En buen estado</p>
-            <p className="card-valor verde">{verdes}</p>
-          </div>
+  <div className="card">
+    <p className="card-label">En buen estado</p>
+    <p className="card-valor verde">{verdes}</p>
+  </div>
 
-          <div className="card">
-            <p className="card-label">Por vencer</p>
-            <p className="card-valor amarillo">{amarillos}</p>
-          </div>
+  <div
+    className={`card card-clickable ${
+      filtroSemaforo === "amarillo" ? "card-activa" : ""
+    }`}
+    onClick={() => {
+      setFiltroSemaforo("amarillo");
+      setPagina(1);
+      setLimite(500);
+    }}
+  >
+    <p className="card-label">Por vencer</p>
+    <p className="card-valor amarillo">{amarillos}</p>
+  </div>
 
-          <div className="card">
-            <p className="card-label">Vencidos</p>
-            <p className="card-valor rojo">{rojos}</p>
-          </div>
-        </div>
+  <div className="card">
+    <p className="card-label">Vencidos</p>
+    <p className="card-valor rojo">{rojos}</p>
+  </div>
+</div>
+
+{filtroSemaforo === "amarillo" && (
+  <div className="filtro-semaforo-activo">
+    <div>
+      <strong>Filtro activo:</strong> productos próximos a vencer.
+    </div>
+
+    <div className="filtro-semaforo-acciones">
+      <button className="btn-agregar" onClick={generarPdfPorVencer}>
+        Generar PDF
+      </button>
+
+      <button
+        className="btn-modo"
+        onClick={() => {
+          setFiltroSemaforo(null);
+          setPagina(1);
+        }}
+      >
+        Quitar filtro
+      </button>
+    </div>
+  </div>
+)}
 
         {/* Ordenamiento mobile */}
         <div className="orden-mobile">

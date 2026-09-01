@@ -786,3 +786,42 @@
   border-radius: 8px;
   overflow: hidden;
 }
+.card-clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-clickable:hover {
+  transform: translateY(-2px);
+}
+
+.card-activa {
+  outline: 2px solid #f4b400;
+  box-shadow: 0 0 0 4px rgba(244, 180, 0, 0.15);
+}
+
+.filtro-semaforo-activo {
+  margin: 16px 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff8e1;
+  border: 1px solid #f4d06f;
+  color: #5f4300;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.filtro-semaforo-acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .filtro-semaforo-activo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
