@@ -14,10 +14,20 @@ function App() {
     setPagina("inicio");
   };
 
-  if (pagina === "inicio") return <Inicio usuario={usuario} onNavegar={setPagina} />;
-  if (pagina === "inventario") return <Inventario usuario={usuario} onNavegar={setPagina} />;
-  if (pagina === "reportes") return <Reportes usuario={usuario} onNavegar={setPagina} />;
-  if (pagina === "usuarios") return <Usuarios usuario={usuario} onNavegar={setPagina} />;
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setUsuario(null);
+    setPagina("login");
+  };
+
+  if (pagina === "inicio")
+    return <Inicio usuario={usuario} onNavegar={setPagina} onLogout={handleLogout} />;
+  if (pagina === "inventario")
+    return <Inventario usuario={usuario} onNavegar={setPagina} onLogout={handleLogout} />;
+  if (pagina === "reportes")
+    return <Reportes usuario={usuario} onNavegar={setPagina} onLogout={handleLogout} />;
+  if (pagina === "usuarios")
+    return <Usuarios usuario={usuario} onNavegar={setPagina} onLogout={handleLogout} />;
   return <Login onLogin={handleLogin} />;
 }
 export default App;

@@ -1,456 +1,683 @@
-.layout {
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;600;700&display=swap');
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Inventario — shell (sidebar + main), scoped under .iv-shell so nothing
+   here leaks into the light theme used by the other pages.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.iv-shell {
+  /* ── Paleta (modo oscuro por defecto) ── */
+  --iv-bg: #000;
+  --iv-bg-sidebar: #000;
+  --iv-border: #1f1f1f;
+  --iv-border-soft: #131313;
+  --iv-surface: #1a1a1a;
+  --iv-hover: #0d0d0d;
+  --iv-text: #fff;
+  --iv-text-secondary: #8a8a8a;
+  --iv-text-tertiary: #5a5a5a;
+  --iv-text-mono: #c9c9c9;
+  --iv-placeholder: #6a6a6a;
+  --iv-invert-bg: #fff;
+  --iv-invert-text: #000;
+  --iv-ink-amarillo: #f1bd30;
+  --iv-scroll-track: #0a0a0a;
+  --iv-scroll-thumb: #333;
+  --iv-scroll-thumb-hover: #444;
+  --iv-shadow: none;
+
   display: flex;
-  min-height: 100vh;
-  background-color: #f3f4f6;
+  height: 100vh;
+  background: var(--iv-bg);
+  font-family: "Archivo", system-ui, sans-serif;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
-/* Sidebar */
-
-.topbar {
-  display: none;
+/* Claro: neutros fríos con pasos bien marcados entre superficies (en vez de
+   escala de grises plana) y una sidebar apenas distinta del contenido para
+   dar profundidad, igual que el negro plano hace en el oscuro. */
+.iv-shell[data-tema="claro"] {
+  --iv-bg: #ffffff;
+  --iv-bg-sidebar: #f5f6f8;
+  --iv-border: #dee1e5;
+  --iv-border-soft: #ececee;
+  --iv-surface: #eef0f3;
+  --iv-hover: #e6e9ec;
+  --iv-text: #14171c;
+  --iv-text-secondary: #5b6068;
+  --iv-text-tertiary: #8d929a;
+  --iv-text-mono: #33363b;
+  --iv-placeholder: #9aa0a6;
+  --iv-invert-bg: #14171c;
+  --iv-invert-text: #ffffff;
+  --iv-ink-amarillo: #b8790a;
+  --iv-scroll-track: #eef0f3;
+  --iv-scroll-thumb: #cbd0d6;
+  --iv-scroll-thumb-hover: #b2b8c0;
+  --iv-shadow: 0 1px 2px rgba(20, 23, 28, 0.05);
 }
 
-.sidebar {
-  width: 220px;
-  background-color: #064e3b;
-  color: white;
+/* ── Sidebar ── */
+.iv-sidebar {
+  width: 212px;
+  flex: none;
+  background: var(--iv-bg-sidebar);
+  border-right: 2px solid var(--iv-border);
   display: flex;
   flex-direction: column;
-  padding: 1.5rem 1rem;
-  flex-shrink: 0;
 }
 
-.sidebar-logo {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  padding-left: 8px;
-}
-
-.sidebar-nav {
+.iv-sidebar-top {
+  padding: 26px 20px 30px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.nav-item {
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  color: rgba(255,255,255,0.7);
+.iv-logo {
+  font: 900 21px/1 "Archivo", sans-serif;
+  letter-spacing: -0.04em;
+  color: var(--iv-text);
+}
+
+.iv-sublogo {
+  font: 700 9.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--iv-text-secondary);
+}
+
+.iv-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.iv-nav-item {
+  padding: 14px 20px;
+  font: 800 11.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.14em;
+  color: var(--iv-text-secondary);
   text-decoration: none;
+  cursor: pointer;
 }
 
-.nav-item:hover {
-  background-color: rgba(255,255,255,0.1);
-  color: white;
+.iv-nav-item:hover {
+  color: var(--iv-text);
+  background: var(--iv-hover);
 }
 
-.nav-item.active {
-  background-color: rgba(255,255,255,0.15);
-  color: white;
-  font-weight: 600;
+.iv-nav-item.activo {
+  font-weight: 900;
+  color: #000;
+  background: #f1bd30;
 }
 
-/* Contenido */
-.contenido {
+.iv-nav-item.activo:hover {
+  color: #000;
+  background: #f1bd30;
+}
+
+/* ── Selector de tema ── */
+.iv-theme-switch {
+  margin-top: auto;
+  display: flex;
+  border-top: 2px solid var(--iv-border);
+}
+
+.iv-theme-btn {
   flex: 1;
-  padding: 1.5rem;
-  overflow-y: auto;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.btn-agregar {
-  background-color: #059669;
-  color: white;
-  font-weight: 600;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  padding: 12px 8px;
+  background: transparent;
+  color: var(--iv-text-secondary);
+  font: 800 9.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
   cursor: pointer;
 }
 
-.btn-agregar:hover {
-  background-color: #047857;
+.iv-theme-btn:hover {
+  color: var(--iv-text);
+  background: var(--iv-hover);
 }
 
-/* Cards */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+.iv-theme-btn.activo {
+  background: var(--iv-invert-bg);
+  color: var(--iv-invert-text);
 }
 
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+.iv-sidebar-footer {
+  border-top: 2px solid var(--iv-border);
+  position: relative;
 }
 
-.card-label {
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-bottom: 6px;
-}
-
-.card-valor {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.card-valor.verde   { color: #059669; }
-.card-valor.amarillo { color: #d97706; }
-.card-valor.rojo    { color: #dc2626; }
-
-/* Tabla */
-.tabla-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  overflow: hidden;
-}
-
-.tabla-header {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  padding: 12px 16px;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-}
-
-.tabla-fila {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  padding: 14px 16px;
-  border-bottom: 1px solid #f3f4f6;
-  font-size: 0.875rem;
-  color: #374151;
-  align-items: center;
-}
-
-.tabla-fila:last-child {
-  border-bottom: none;
-}
-
-.producto-nombre {
-  font-weight: 500;
-  color: #1f2937;
-}
-
-.badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  width: fit-content;
-}
-
-.badge-verde    { background-color: #d1fae5; color: #065f46; }
-.badge-amarillo { background-color: #fef3c7; color: #92400e; }
-.badge-rojo     { background-color: #fee2e2; color: #991b1b; }
-
-.header-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.btn-modo {
-  background-color: white;
-  color: #1e3a5f;
-  font-weight: 600;
-  padding: 8px 16px;
-  border: 1px solid #1e3a5f;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-
-.btn-modo:hover {
-  background-color: #f0f4f8;
-}
-
-.menu-mobile {
-  display: none;
-}
-
-.orden-mobile {
-  display: none;
-}
-/* Responsive */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-
-  .contenido {
-    padding: 0;
-  }
-
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #1e3a5f;
-    color: white;
-    padding: 1rem 1.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-  }
-
-  .topbar-menu {
-    font-size: 1.5rem;
-    cursor: pointer;
-  }
-
-  .page-header {
-    padding: 0 1rem 1rem;
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .header-actions {
-    margin-top: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .btn-modo {
+.iv-user-btn {
   width: 100%;
-  text-align: center;
-  padding: 12px;
-  }
-
-  .header-actions .btn-agregar {
-    width: 100%;
-    text-align: center;
-    padding: 12px;
-  }
-
-  .cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 0 1rem 1rem;
-  }
-
-  .tabla-container {
-    border-radius: 0;
-  }
-
-  .tabla-header { display: none; }
-
-  .tabla-fila {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 12px 16px;
-    border-bottom: 1px solid #f3f4f6;
-    text-align: left;
-  }
-
-  .producto-nombre {
-    font-size: 0.95rem;
-    font-weight: 600;
-  }
-
-  .tabla-fila span:nth-child(2) {
-    font-size: 0.8rem;
-    color: #6b7280;
-  }
-
-  .tabla-fila span:nth-child(3) {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #1f2937;
-  }
-
-  .badge {
-    align-self: center;
-    margin: 4px 0;
-  }
-
-  .acciones-grupo {
-    display: flex;
-    flex-direction: row;
-    gap: 6px;
-    flex-wrap: nowrap;
-    margin-top: 4px;
-  }
-
-  .acciones-grupo button {
-  flex: 1;
-  font-size: 0.75rem;
-  padding: 6px 0 !important;
-  min-width: 0;
-  justify-content: center;
-  text-align: center;
-  }
-  .menu-mobile {
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 75%;
-    height: 100vh;
-    background-color: #064e3b;
-    color: white;
-    z-index: 100;
-    padding: 1.5rem 1rem;
-    box-shadow: 4px 0 16px rgba(0,0,0,0.3);
-  }
-
-  .menu-mobile-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
-    padding: 0 8px;
-  }
-
-  .menu-cerrar {
-    cursor: pointer;
-    font-size: 1.2rem;
-  }
-
-  .menu-mobile-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .sucursal-tabs {
+  padding: 20px;
+  background: none;
+  border: 0;
   display: flex;
-  flex-wrap: wrap;
-  margin-top: 6px;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  }
-
-  .orden-mobile {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0 1rem 1rem;
-  }
-
-  .orden-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #6b7280;
-    text-transform: uppercase;
-  }
-
-  .orden-botones {
-  display: flex;
-  gap: 4px;
-  flex-wrap: nowrap;
-  }
-
-  .btn-orden {
-  padding: 5px 8px;
-  border-radius: 20px;
-  border: 1px solid #d1d5db;
-  background: white;
-  font-size: 0.7rem;
-  color: #374151;
   cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.iv-user-btn:hover {
+  background: var(--iv-hover);
+}
+
+.iv-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.iv-user-name {
+  font: 800 11px/1.2 "Archivo", sans-serif;
+  color: var(--iv-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  }
-
-  .btn-orden.activo {
-    background: #064e3b;
-    color: white;
-    border-color: #064e3b;
-  }
 }
 
-.tabla-header.tabla-header-extendido,
-.tabla-fila.tabla-fila-extendida {
-  grid-template-columns: 2fr 1fr 1fr 1fr 260px;
+.iv-user-role {
+  font: 700 9.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+  color: var(--iv-text-secondary);
 }
- 
-/* Grupo de botones en la columna acciones */
-.acciones-grupo {
+
+.iv-user-caret {
+  flex: none;
+  color: var(--iv-text-tertiary);
+  font-size: 10px;
+}
+
+.iv-user-menu {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(100% + 6px);
+  background: var(--iv-hover);
+  border: 1px solid var(--iv-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+
+.iv-user-menu-item {
+  width: 100%;
+  padding: 12px 14px;
+  background: none;
+  border: 0;
+  color: #e1222a;
+  font: 900 10.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  text-align: left;
+}
+
+.iv-user-menu-item:hover {
+  background: #e1222a;
+  color: #fff;
+}
+
+/* ── Main ── */
+.iv-main {
+  flex: 1;
+  min-width: 1180px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.iv-topbar {
+  padding: 26px 30px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.iv-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.iv-title {
+  font: 900 52px/0.92 "Archivo", sans-serif;
+  letter-spacing: -0.05em;
+  color: var(--iv-text);
+}
+
+.iv-tabs {
+  display: flex;
+  border: 2px solid var(--iv-border);
+  box-shadow: var(--iv-shadow);
+}
+
+.iv-tab {
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--iv-text-secondary);
+  font: 800 10.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
+  cursor: pointer;
+}
+
+.iv-tab:hover {
+  color: var(--iv-text);
+}
+
+.iv-tab.activo {
+  background: var(--iv-invert-bg);
+  color: var(--iv-invert-text);
+  font-weight: 900;
+}
+
+.iv-tab.activo:hover {
+  color: var(--iv-invert-text);
+}
+
+.iv-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.iv-actions {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.iv-search-wrap {
+  display: flex;
+  gap: 6px;
+}
+
+.iv-search {
+  width: 240px;
+  background: var(--iv-surface);
+  border: 0;
+  outline: none;
+  padding: 13px 14px;
+  font: 400 12.5px "IBM Plex Mono", monospace;
+  color: var(--iv-text);
+  box-shadow: var(--iv-shadow);
+}
+
+.iv-search:focus {
+  box-shadow: inset 0 -3px 0 #f1bd30;
+}
+
+.iv-search::placeholder {
+  color: var(--iv-placeholder);
+}
+
+.iv-btn-camara {
+  padding: 0 15px;
+  background: var(--iv-surface);
+  color: var(--iv-ink-amarillo);
+  font: 900 10px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
+  cursor: pointer;
+}
+
+.iv-btn-camara:hover {
+  filter: brightness(1.4);
+}
+
+.iv-btn-modo {
+  padding: 13px 16px;
+  background: var(--iv-hover);
+  color: var(--iv-text-secondary);
+  font: 800 10.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
+  cursor: pointer;
+}
+
+.iv-btn-modo:hover {
+  color: var(--iv-text);
+}
+
+.iv-btn-nuevo {
+  padding: 13px 18px;
+  background: #0ba852;
+  color: #000;
+  font: 900 11px/1 "Archivo", sans-serif;
+  border: 0;
+  cursor: pointer;
+}
+
+.iv-btn-nuevo:hover {
+  filter: brightness(1.08);
+}
+
+/* ── Chips / resumen ── */
+.iv-chips {
+  padding: 2px 30px 0;
+  display: flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-/* Botón retirar (en la tabla) */
-.btn-retirar {
-  background-color: #059669;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  font-weight: 600;
+.iv-chip {
+  padding: 7px 11px;
+  background: var(--iv-surface);
+  font: 900 10.5px/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
   cursor: pointer;
-  transition: background 0.2s;
+  border: 0;
 }
-.btn-retirar:hover {
-  background-color: #047857;
+
+.iv-chip-rojo {
+  background: var(--iv-surface);
+  color: #e1222a;
 }
-.btn-retirar:disabled {
-  opacity: 0.5;
+.iv-chip-rojo:hover,
+.iv-chip-rojo.activo {
+  background: #e1222a;
+  color: #fff;
+}
+
+.iv-chip-amarillo {
+  background: var(--iv-surface);
+  color: var(--iv-ink-amarillo);
+}
+.iv-chip-amarillo:hover,
+.iv-chip-amarillo.activo {
+  background: #f1bd30;
+  color: #000;
+}
+
+.iv-chip-verde {
+  background: var(--iv-surface);
+  color: #0ba852;
+}
+.iv-chip-verde:hover,
+.iv-chip-verde.activo {
+  background: #0ba852;
+  color: #000;
+}
+
+.iv-meta {
+  margin-left: auto;
+  font: 400 10.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+  color: var(--iv-text-tertiary);
+}
+
+/* ── Tabla ── */
+.iv-thead {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 128px 92px 130px 250px;
+  padding: 0 30px 8px;
+  border-bottom: 2px solid var(--iv-border);
+}
+
+.iv-th {
+  font: 800 10px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--iv-text-secondary);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  text-align: left;
+  padding: 0;
+}
+
+.iv-th:hover {
+  color: var(--iv-text);
+}
+
+.iv-th.activo {
+  color: var(--iv-text);
+}
+
+.iv-th-static {
+  font: 800 10px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--iv-text-secondary);
+}
+
+.iv-tbody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-color: var(--iv-scroll-thumb) var(--iv-scroll-track);
+}
+
+.iv-tbody::-webkit-scrollbar {
+  width: 10px;
+}
+.iv-tbody::-webkit-scrollbar-track {
+  background: var(--iv-scroll-track);
+}
+.iv-tbody::-webkit-scrollbar-thumb {
+  background: var(--iv-scroll-thumb);
+}
+.iv-tbody::-webkit-scrollbar-thumb:hover {
+  background: var(--iv-scroll-thumb-hover);
+}
+
+.iv-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 128px 92px 130px 250px;
+  align-items: center;
+  padding: 0 30px;
+  min-height: 52px;
+  border-bottom: 1px solid var(--iv-border-soft);
+  transition: background 90ms linear;
+}
+
+.iv-row:hover {
+  background: var(--iv-hover);
+}
+
+.iv-col-producto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.iv-nombre {
+  font: 800 14px/1.15 "Archivo", sans-serif;
+  color: var(--iv-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iv-producto-meta {
+  font: 400 9.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.08em;
+  color: var(--iv-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.iv-venc {
+  font: 400 12.5px "IBM Plex Mono", monospace;
+  color: var(--iv-text-mono);
+}
+
+.iv-cant {
+  font: 600 12.5px "IBM Plex Mono", monospace;
+  color: var(--iv-text);
+}
+
+.iv-estado {
+  justify-self: start;
+  padding: 6px 11px;
+  font: 900 10px/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+}
+
+.iv-estado-rojo {
+  background: #e1222a;
+  color: #fff;
+}
+
+.iv-estado-amarillo {
+  background: #f1bd30;
+  color: #000;
+}
+
+.iv-estado-verde {
+  background: #0ba852;
+  color: #000;
+}
+
+.iv-acciones {
+  display: flex;
+  gap: 5px;
+}
+
+.iv-btn-retirar,
+.iv-btn-editar,
+.iv-btn-eliminar {
+  padding: 7px 12px;
+  font: 900 9.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
+  cursor: pointer;
+}
+
+.iv-btn-retirar {
+  background: #0ba852;
+  color: #000;
+}
+.iv-btn-retirar:hover {
+  filter: brightness(1.12);
+}
+.iv-btn-retirar:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
+  filter: none;
 }
 
-/* Botón editar */
-.btn-editar {
-  background-color: #f0a500;
+.iv-btn-editar {
+  background: var(--iv-surface);
+  color: var(--iv-ink-amarillo);
+}
+.iv-btn-editar:hover {
+  background: #f1bd30;
+  color: #000;
+}
+
+.iv-btn-eliminar {
+  background: var(--iv-surface);
+  color: #e1222a;
+}
+.iv-btn-eliminar:hover {
+  background: #e1222a;
   color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  font-weight: 600;
+}
+
+.iv-empty {
+  padding: 24px 30px;
+  font: 400 12.5px "IBM Plex Mono", monospace;
+  color: var(--iv-text-tertiary);
+}
+
+/* ── Footer / paginación ── */
+.iv-footer {
+  margin-top: auto;
+  padding: 16px 30px;
+  border-top: 2px solid var(--iv-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.iv-footer-info {
+  font: 400 11px "IBM Plex Mono", monospace;
+  letter-spacing: 0.08em;
+  color: var(--iv-text-secondary);
+}
+
+.iv-footer-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.iv-footer-label {
+  font: 700 10px "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+  color: var(--iv-text-secondary);
+}
+
+.iv-select {
+  padding: 8px 12px;
+  background: var(--iv-surface);
+  font: 600 11px "IBM Plex Mono", monospace;
+  color: var(--iv-text);
+  border: 0;
+  box-shadow: var(--iv-shadow);
+}
+
+.iv-btn-pag {
+  padding: 9px 14px;
+  background: var(--iv-surface);
+  color: var(--iv-text);
+  font: 900 10px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
   cursor: pointer;
-  transition: background 0.2s;
 }
-.btn-editar:hover {
-  background-color: #d4920a;
+
+.iv-btn-pag:hover {
+  filter: brightness(1.3);
 }
- 
-/* Botón eliminar (en la tabla) */
-.btn-eliminar {
-  background-color: #e53e3e;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
+
+.iv-btn-pag:disabled {
+  color: var(--iv-text-tertiary);
+  cursor: not-allowed;
+  filter: none;
 }
-.btn-eliminar:hover {
-  background-color: #c53030;
+
+.iv-btn-pag-primary {
+  background: var(--iv-invert-bg);
+  color: var(--iv-invert-text);
 }
- 
+
+.iv-btn-pag-primary:hover {
+  filter: brightness(0.94);
+}
+
+.iv-btn-pag-primary:disabled {
+  background: var(--iv-surface);
+  color: var(--iv-text-tertiary);
+}
+
+.iv-footer-pagina {
+  font: 700 11px "IBM Plex Mono", monospace;
+  color: var(--iv-text);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Modales / formularios / autocomplete — sin cambios de diseño, se reusan
+   tal cual para Nuevo, Editar, Eliminar y Retirar.
+   ══════════════════════════════════════════════════════════════════════════ */
+
 /* Botón eliminar de confirmación (modal) */
 .btn-eliminar-confirm {
   background-color: #e53e3e;
@@ -470,7 +697,7 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
- 
+
 /* Botón cancelar */
 .btn-cancelar {
   background-color: transparent;
@@ -487,7 +714,28 @@
   background-color: #f5f5f5;
   color: #333;
 }
- 
+
+/* Botón guardar/confirmar (modal) */
+.btn-agregar {
+  background-color: #059669;
+  color: white;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.btn-agregar:hover {
+  background-color: #047857;
+}
+
+.btn-agregar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ── Modal overlay ── */
 .modal-overlay {
   position: fixed;
@@ -499,7 +747,7 @@
   z-index: 1000;
   padding: 16px;
 }
- 
+
 /* Caja del modal */
 .modal-caja {
   background: #fff;
@@ -511,7 +759,7 @@
   flex-direction: column;
   overflow: hidden;
 }
- 
+
 /* Header del modal */
 .modal-header {
   display: flex;
@@ -538,7 +786,7 @@
 .modal-cerrar:hover {
   color: #333;
 }
- 
+
 /* Body del modal */
 .modal-body {
   padding: 20px 24px;
@@ -546,7 +794,7 @@
   flex-direction: column;
   gap: 14px;
 }
- 
+
 /* Texto de confirmación */
 .modal-texto-confirmar {
   font-size: 0.95rem;
@@ -554,7 +802,7 @@
   line-height: 1.5;
   margin: 0;
 }
- 
+
 /* Footer del modal */
 .modal-footer {
   display: flex;
@@ -563,7 +811,7 @@
   padding: 16px 24px;
   border-top: 1px solid #e8e8e8;
 }
- 
+
 /* ── Formulario ── */
 .form-grupo {
   display: flex;
@@ -604,7 +852,7 @@
 .autocomplete-wrap {
   position: relative;
 }
- 
+
 .autocomplete-lista {
   position: absolute;
   top: calc(100% + 4px);
@@ -613,7 +861,7 @@
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
   max-height: 200px;
   overflow-y: auto;
   z-index: 2000;
@@ -621,7 +869,7 @@
   padding: 4px 0;
   list-style: none;
 }
- 
+
 .autocomplete-item {
   padding: 9px 14px;
   font-size: 0.88rem;
@@ -629,13 +877,13 @@
   cursor: pointer;
   transition: background 0.15s;
 }
- 
+
 .autocomplete-item:hover,
 .autocomplete-item--activo {
   background: #f0f4ff;
   color: #3a5bd9;
 }
- 
+
 .autocomplete-item--vacio {
   color: #aaa;
   cursor: default;
@@ -646,98 +894,7 @@
   color: #aaa;
 }
 
-.title-sucursales {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.sucursal-tabs {
-  display: flex;
-  gap: 6px;
-}
-
-.btn-sucursal {
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid #1e3a5f;
-  background: white;
-  color: #1e3a5f;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-sucursal:hover {
-  background: #1e3a5f;
-  color: white;
-}
-
-.btn-sucursal.activo {
-  background: #1e3a5f;
-  color: white;
-}
-
-.btn-sucursal:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.paginacion-container {
-  margin-top: 18px;
-  padding: 14px 18px;
-  background: #ffffff;
-  border-radius: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-}
-
-.paginacion-info {
-  font-size: 14px;
-  color: #555;
-}
-
-.paginacion-controles {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  font-size: 14px;
-  color: #444;
-}
-
-.paginacion-select {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #fff;
-  font-size: 14px;
-}
-
-.btn-paginacion {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-paginacion:disabled {
-  background: #cbd5e1;
-  cursor: not-allowed;
-}
-
-.paginacion-pagina {
-  font-weight: 600;
-  color: #333;
-}
+/* ── Retiro ── */
 .retiro-info {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -757,26 +914,6 @@
   font-size: 14px;
   color: #475569;
   margin: 4px 0;
-}
-
-.col-ordenable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.col-ordenable:hover {
-  color: #1e3a5f;
-}
-
-/* ── Búsqueda / escaneo por código de barras ── */
-.busqueda-barras {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.busqueda-barras .form-input {
-  min-width: 220px;
 }
 
 /* ── Lector de cámara ── */
