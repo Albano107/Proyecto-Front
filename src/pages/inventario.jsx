@@ -1,9 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "../api/axios";
 import { Html5Qrcode } from "html5-qrcode";
-import Layout from "../components/Sidebar";
 import CodigoBarras from "../components/CodigoBarras";
 import "./inventario.css";
+
+const NAV_ITEMS = [
+  { id: "inicio", label: "INICIO" },
+  { id: "inventario", label: "INVENTARIO" },
+  { id: "reportes", label: "REPORTES" },
+  { id: "usuarios", label: "USUARIOS", soloAdmin: true },
+];
 
 // ─── AutoComplete ─────────────────────────────────────────────────────────────
 function AutoComplete({ label, opciones, valorTexto, onSeleccionar, placeholder }) {
@@ -165,7 +171,7 @@ function EscanerCamara({ onDetectado, onCerrar }) {
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
-export default function Inventario({ onNavegar, usuario }) {
+export default function Inventario({ onNavegar, usuario, onLogout }) {
   const [sucursalActiva, setSucursalActiva] = useState(
     usuario?.rol === "Operario" ? usuario.id_sucursal : null
   );
@@ -232,10 +238,57 @@ export default function Inventario({ onNavegar, usuario }) {
   const [busqueda, setBusqueda] = useState("");
   const [camaraAbierta, setCamaraAbierta] = useState(false);
 
-  // Filtro por semáforo
-  // null = muestra todos
-  // "amarillo" = muestra solo productos por vencer
-  const [filtroSemaforo, setFiltroSemaforo] = useState(null);
+  // Filtro rápido por chip de estado (rojo/amarillo/verde)
+  const [estadoFiltro, setEstadoFiltro] = useState(null);
+  const toggleEstadoFiltro = (estado) => {
+    setEstadoFiltro((actual) => (actual === estado ? null : estado));
+    setPagina(1);
+
+    if (estado === "amarillo") {
+      setLimite(500);
+    }
+  };
+
+  // Tema claro/oscuro (persistido, compartido entre páginas)
+  const [tema, setTema] = useState(() => {
+    try {
+      return localStorage.getItem("gondolapro_tema") || "oscuro";
+    } catch {
+      return "oscuro";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("gondolapro_tema", tema);
+    } catch {
+      // localStorage no disponible: no es crítico.
+    }
+  }, [tema]);
+
+  // Menú de usuario (cerrar sesión)
+  const [menuUsuarioAbierto, setMenuUsuarioAbierto] = useState(false);
+  const menuUsuarioRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickFuera = (e) => {
+      if (
+        menuUsuarioRef.current &&
+        !menuUsuarioRef.current.contains(e.target)
+      ) {
+        setMenuUsuarioAbierto(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickFuera);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickFuera);
+    };
+  }, []);
+
+  const flecha = (columna) =>
+    orden.columna === columna ? (orden.direccion === "asc" ? "↑" : "↓") : "↕";
 
   const toggleOrden = (columna) => {
     setOrden((prev) =>
@@ -522,11 +575,6 @@ export default function Inventario({ onNavegar, usuario }) {
   };
 
   // ── Totales ─────────────────────────────────────────────────────────────────
-  const total =
-    modo === "productos"
-      ? resumen.totalProductos
-      : resumen.totalUnidades;
-
   const verdes =
     modo === "productos"
       ? resumen.verdesProductos
@@ -542,21 +590,17 @@ export default function Inventario({ onNavegar, usuario }) {
       ? resumen.rojosProductos
       : resumen.rojosUnidades;
 
-    // ── Búsqueda / escaneo por código de barras + filtro por semáforo ────────────
+  // ── Búsqueda / escaneo por código de barras ─────────────────────────────────
   const productosFiltrados = productos.filter((p) => {
     const termino = busqueda.trim().toLowerCase();
 
-    const coincideBusqueda =
+    return (
       !termino ||
       p.nombre.toLowerCase().includes(termino) ||
       (p.codigo_barras && p.codigo_barras.toLowerCase().includes(termino)) ||
       (p.departamento && p.departamento.toLowerCase().includes(termino)) ||
-      (p.sucursal && p.sucursal.toLowerCase().includes(termino));
-
-    const coincideSemaforo =
-      !filtroSemaforo || p.estado === filtroSemaforo;
-
-    return coincideBusqueda && coincideSemaforo;
+      (p.sucursal && p.sucursal.toLowerCase().includes(termino))
+    );
   });
 
   const manejarBusqueda = (codigo) => {
@@ -585,14 +629,36 @@ export default function Inventario({ onNavegar, usuario }) {
     manejarBusqueda(codigo);
   };
 
+  // Chip de estado: filtro rápido client-side sobre lo ya cargado en la página actual.
+  const productosPorEstado = estadoFiltro
+    ? productosFiltrados.filter((p) => p.estado === estadoFiltro)
+    : productosFiltrados;
+
+  // El backend ya devuelve los datos ordenados por nombre/vencimiento/cantidad
+  // (orderBy/orderDir en cargarInventario), así que solo hace falta reordenar acá
+  // para "estado": el backend lo aproxima por fecha_vencimiento, pero el orden
+  // real de semáforo (rojo/amarillo/verde) depende también de dias_alerta.
   const productoOrdenados =
     orden.columna === "estado"
-      ? [...productosFiltrados].sort((a, b) => {
+      ? [...productosPorEstado].sort((a, b) => {
           const mult = orden.direccion === "asc" ? 1 : -1;
           const prioridad = { rojo: 0, amarillo: 1, verde: 2 };
           return mult * (prioridad[a.estado] - prioridad[b.estado]);
         })
-      : productosFiltrados;
+      : productosPorEstado;
+
+  const fechaDatos = new Date();
+  const datosAl = [
+    String(fechaDatos.getDate()).padStart(2, "0"),
+    String(fechaDatos.getMonth() + 1).padStart(2, "0"),
+    fechaDatos.getFullYear(),
+  ].join("/") +
+    " " +
+    [
+      String(fechaDatos.getHours()).padStart(2, "0"),
+      String(fechaDatos.getMinutes()).padStart(2, "0"),
+    ].join(":");
+
 
   const generarPdfPorVencer = () => {
     const productosPorVencer = productoOrdenados.filter(
@@ -612,6 +678,8 @@ export default function Inventario({ onNavegar, usuario }) {
           <tr>
             <td>${p.nombre}</td>
             <td>${p.codigo_barras || "-"}</td>
+            <td>${p.departamento || "-"}</td>
+            <td>${p.sucursal || "-"}</td>
             <td>${p.vencimiento}</td>
             <td>${p.cantidad} u.</td>
             <td>Por vencer</td>
@@ -621,6 +689,11 @@ export default function Inventario({ onNavegar, usuario }) {
       .join("");
 
     const ventana = window.open("", "_blank");
+
+    if (!ventana) {
+      alert("El navegador bloqueó la ventana del PDF. Permití ventanas emergentes para generar el reporte.");
+      return;
+    }
 
     ventana.document.write(`
       <!DOCTYPE html>
@@ -654,7 +727,7 @@ export default function Inventario({ onNavegar, usuario }) {
               border: 1px solid #ccc;
               padding: 8px;
               text-align: left;
-              font-size: 13px;
+              font-size: 12px;
             }
 
             th {
@@ -688,6 +761,8 @@ export default function Inventario({ onNavegar, usuario }) {
               <tr>
                 <th>Producto</th>
                 <th>Código</th>
+                <th>Departamento</th>
+                <th>Sucursal</th>
                 <th>Vencimiento</th>
                 <th>Cantidad</th>
                 <th>Estado</th>
@@ -709,301 +784,353 @@ export default function Inventario({ onNavegar, usuario }) {
 
     ventana.document.close();
   };
-  return (
-    <Layout activo="inventario" usuario={usuario} onNavegar={onNavegar}>
-        {/* Header de página */}
-        <div className="page-header">
-          <div className="title-sucursales">
-            <h1 className="page-title">Inventario</h1>
 
-            <div className="sucursal-tabs">
-              {usuario?.rol !== "Operario" && (
+  // ── Render ──────────────────────────────────────────────────────────────────
+  return (
+    <>
+      <div className="iv-shell" data-tema={tema}>
+        {/* Sidebar */}
+        <aside className="iv-sidebar">
+          <div className="iv-sidebar-top">
+            <div className="iv-logo">GóndolaPro</div>
+            <div className="iv-sublogo">SISTEMA DE INVENTARIO</div>
+          </div>
+
+          <nav className="iv-nav">
+            {NAV_ITEMS.filter(
+              (item) => !item.soloAdmin || usuario?.rol !== "Operario"
+            ).map((item) => (
+              <a
+                key={item.id}
+                className={`iv-nav-item${item.id === "inventario" ? " activo" : ""}`}
+                onClick={() => onNavegar(item.id)}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="iv-theme-switch">
+            <button
+              className={`iv-theme-btn${tema === "oscuro" ? " activo" : ""}`}
+              onClick={() => setTema("oscuro")}
+            >
+              🌙 OSCURO
+            </button>
+            <button
+              className={`iv-theme-btn${tema === "claro" ? " activo" : ""}`}
+              onClick={() => setTema("claro")}
+            >
+              ☀️ CLARO
+            </button>
+          </div>
+
+          <div className="iv-sidebar-footer" ref={menuUsuarioRef}>
+            <button
+              className="iv-user-btn"
+              onClick={() => setMenuUsuarioAbierto((v) => !v)}
+            >
+              <span className="iv-user-info">
+                <span className="iv-user-name">
+                  {usuario?.nombre || "Usuario"}
+                </span>
+                <span className="iv-user-role">
+                  {(usuario?.rol || "").toUpperCase()}
+                </span>
+              </span>
+              <span className="iv-user-caret">
+                {menuUsuarioAbierto ? "▴" : "▾"}
+              </span>
+            </button>
+
+            {menuUsuarioAbierto && (
+              <div className="iv-user-menu">
                 <button
-                  className={`btn-sucursal ${!sucursalActiva ? "activo" : ""}`}
+                  className="iv-user-menu-item"
                   onClick={() => {
-                    setSucursalActiva(null);
+                    setMenuUsuarioAbierto(false);
+                    onLogout?.();
+                  }}
+                >
+                  CERRAR SESIÓN
+                </button>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Contenido principal */}
+        <div className="iv-main">
+          {/* Header de página */}
+          <div className="iv-topbar">
+            <div className="iv-title-group">
+              <h1 className="iv-title">Inventario</h1>
+
+              <div className="iv-tabs">
+                {usuario?.rol !== "Operario" && (
+                  <button
+                    className={`iv-tab${!sucursalActiva ? " activo" : ""}`}
+                    onClick={() => {
+                      setSucursalActiva(null);
+                      setPagina(1);
+                    }}
+                  >
+                    TODAS
+                  </button>
+                )}
+
+                {listaSucursales.map((s) => (
+                  <button
+                    key={s.id_sucursal}
+                    className={`iv-tab${
+                      sucursalActiva === s.id_sucursal ? " activo" : ""
+                    }`}
+                    onClick={() => {
+                      if (usuario?.rol !== "Operario") {
+                        setSucursalActiva(s.id_sucursal);
+                        setPagina(1);
+                      }
+                    }}
+                    disabled={
+                      usuario?.rol === "Operario" &&
+                      s.id_sucursal !== usuario.id_sucursal
+                    }
+                  >
+                    {s.nombre.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="iv-actions">
+              <div className="iv-search-wrap">
+                <input
+                  className="iv-search"
+                  type="text"
+                  placeholder="Buscar o escanear código…"
+                  value={busqueda}
+                  onChange={(e) => {
+                    setBusqueda(e.target.value);
+                    setPagina(1);
+                  }}
+                  onKeyDown={handleBusquedaKeyDown}
+                />
+
+                <button
+                  className="iv-btn-camara"
+                  onClick={() => setCamaraAbierta(true)}
+                  title="Escanear con cámara"
+                >
+                  CÁMARA
+                </button>
+              </div>
+
+              <button
+                className="iv-btn-modo"
+                onClick={() =>
+                  setModo(modo === "productos" ? "unidades" : "productos")
+                }
+              >
+                {modo === "productos" ? "UNIDADES" : "PRODUCTOS"}
+              </button>
+
+              {usuario?.rol !== "Operario" && (
+                <button className="iv-btn-nuevo" onClick={abrirModalNuevo}>
+                  + NUEVO
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Chips de resumen */}
+          <div className="iv-chips">
+            <span
+              className={`iv-chip iv-chip-rojo${
+                estadoFiltro === "rojo" ? " activo" : ""
+              }`}
+              onClick={() => toggleEstadoFiltro("rojo")}
+            >
+              {rojos} VENCIDOS
+            </span>
+            <span
+              className={`iv-chip iv-chip-amarillo${
+                estadoFiltro === "amarillo" ? " activo" : ""
+              }`}
+              onClick={() => toggleEstadoFiltro("amarillo")}
+            >
+              {amarillos} POR VENCER
+            </span>
+            <span
+              className={`iv-chip iv-chip-verde${
+                estadoFiltro === "verde" ? " activo" : ""
+              }`}
+              onClick={() => toggleEstadoFiltro("verde")}
+            >
+              {verdes} EN REGLA
+            </span>
+            <span className="iv-meta">
+              {totalRegistros} PRODUCTOS · {listaSucursales.length} SUCURSALES
+              · DATOS AL {datosAl}
+            </span>
+          </div>
+
+
+          {estadoFiltro === "amarillo" && (
+            <div className="iv-filtro-reporte">
+              <span className="iv-filtro-reporte-texto">
+                FILTRO ACTIVO: PRODUCTOS PRÓXIMOS A VENCER
+              </span>
+
+              <span className="iv-filtro-reporte-acciones">
+                <button className="iv-btn-nuevo" onClick={generarPdfPorVencer}>
+                  GENERAR PDF
+                </button>
+
+                <button
+                  className="iv-btn-modo"
+                  onClick={() => {
+                    setEstadoFiltro(null);
                     setPagina(1);
                   }}
                 >
-                  Todas
+                  QUITAR FILTRO
                 </button>
-              )}
-
-              {listaSucursales.map((s) => (
-                <button
-                  key={s.id_sucursal}
-                  className={`btn-sucursal ${
-                    sucursalActiva === s.id_sucursal ? "activo" : ""
-                  }`}
-                  onClick={() => {
-                    if (usuario?.rol !== "Operario") {
-                      setSucursalActiva(s.id_sucursal);
-                      setPagina(1);
-                    }
-                  }}
-                  disabled={
-                    usuario?.rol === "Operario" &&
-                    s.id_sucursal !== usuario.id_sucursal
-                  }
-                >
-                  {s.nombre}
-                </button>
-              ))}
+              </span>
             </div>
-          </div>
+          )}
 
-          <div className="header-actions">
-            <div className="busqueda-barras">
-              <input
-                className="form-input"
-                type="text"
-                placeholder="Buscar o escanear código..."
-                value={busqueda}
-                onChange={(e) => {
-                  setBusqueda(e.target.value);
-                  setPagina(1);
-                }}
-                onKeyDown={handleBusquedaKeyDown}
-              />
- 
-              <button
-                className="btn-modo"
-                onClick={() => setCamaraAbierta(true)}
-                title="Escanear con cámara"
-              >
-                📷
-              </button>
-            </div>
+          {/* Tabla */}
+          <div className="iv-thead">
             <button
-              className="btn-modo"
-              onClick={() =>
-                setModo(modo === "productos" ? "unidades" : "productos")
-              }
-            >
-              Ver por {modo === "productos" ? "unidades" : "productos"}
-            </button>
-
-            {usuario?.rol !== "Operario" && (
-              <button className="btn-agregar" onClick={abrirModalNuevo}>
-                + Nuevo producto
-              </button>
-            )}
-          </div>
-        </div>
-
-       {/* Cards */}
-<div className="cards-grid">
-  <div className="card">
-    <p className="card-label">Total {modo}</p>
-    <p className="card-valor">{total}</p>
-  </div>
-
-  <div className="card">
-    <p className="card-label">En buen estado</p>
-    <p className="card-valor verde">{verdes}</p>
-  </div>
-
-  <div
-    className={`card card-clickable ${
-      filtroSemaforo === "amarillo" ? "card-activa" : ""
-    }`}
-    onClick={() => {
-      setFiltroSemaforo("amarillo");
-      setPagina(1);
-      setLimite(500);
-    }}
-  >
-    <p className="card-label">Por vencer</p>
-    <p className="card-valor amarillo">{amarillos}</p>
-  </div>
-
-  <div className="card">
-    <p className="card-label">Vencidos</p>
-    <p className="card-valor rojo">{rojos}</p>
-  </div>
-</div>
-
-{filtroSemaforo === "amarillo" && (
-  <div className="filtro-semaforo-activo">
-    <div>
-      <strong>Filtro activo:</strong> productos próximos a vencer.
-    </div>
-
-    <div className="filtro-semaforo-acciones">
-      <button className="btn-agregar" onClick={generarPdfPorVencer}>
-        Generar PDF
-      </button>
-
-      <button
-        className="btn-modo"
-        onClick={() => {
-          setFiltroSemaforo(null);
-          setPagina(1);
-        }}
-      >
-        Quitar filtro
-      </button>
-    </div>
-  </div>
-)}
-
-        {/* Ordenamiento mobile */}
-        <div className="orden-mobile">
-          <span className="orden-label">Ordenar por:</span>
-          <div className="orden-botones">
-            <button
-              className={`btn-orden ${orden.columna === "nombre" ? "activo" : ""}`}
+              className={`iv-th${orden.columna === "nombre" ? " activo" : ""}`}
               onClick={() => toggleOrden("nombre")}
             >
-              Nombre {orden.columna === "nombre" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+              PRODUCTO {flecha("nombre")}
             </button>
             <button
-              className={`btn-orden ${orden.columna === "vencimiento" ? "activo" : ""}`}
+              className={`iv-th${
+                orden.columna === "vencimiento" ? " activo" : ""
+              }`}
               onClick={() => toggleOrden("vencimiento")}
             >
-              Vencimiento {orden.columna === "vencimiento" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+              VENCIMIENTO {flecha("vencimiento")}
             </button>
             <button
-              className={`btn-orden ${orden.columna === "cantidad" ? "activo" : ""}`}
+              className={`iv-th${orden.columna === "cantidad" ? " activo" : ""}`}
               onClick={() => toggleOrden("cantidad")}
             >
-              Cantidad {orden.columna === "cantidad" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+              CANT {flecha("cantidad")}
             </button>
             <button
-              className={`btn-orden ${orden.columna === "estado" ? "activo" : ""}`}
+              className={`iv-th${orden.columna === "estado" ? " activo" : ""}`}
               onClick={() => toggleOrden("estado")}
             >
-              Estado {orden.columna === "estado" ? (orden.direccion === "asc" ? "↑" : "↓") : ""}
+              ESTADO {flecha("estado")}
             </button>
-          </div>
-        </div>
-
-        {/* Tabla */}
-        <div className="tabla-container">
-          <div className="tabla-header tabla-header-extendido">
-            <span className="col-ordenable" onClick={() => toggleOrden("nombre")}>
-              Producto {orden.columna === "nombre" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
-            </span>
-
-            <span>Código</span>
-
-
-            <span className="col-ordenable" onClick={() => toggleOrden("vencimiento")}>
-              Vencimiento {orden.columna === "vencimiento" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
-            </span>
-            <span className="col-ordenable" onClick={() => toggleOrden("cantidad")}>
-              Cantidad {orden.columna === "cantidad" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
-            </span>
-            <span className="col-ordenable" onClick={() => toggleOrden("estado")}>
-              Estado {orden.columna === "estado" ? (orden.direccion === "asc" ? "↑" : "↓") : "↕"}
-            </span>
-            <span>Acciones</span>
+            <span className="iv-th-static">ACCIONES</span>
           </div>
 
-          {productoOrdenados.length === 0 ? (
-        <div className="tabla-fila tabla-fila-extendida">
-          <span>No hay productos para mostrar</span>
-          <span>-</span>
-          <span>-</span>
-          <span>-</span>
-          <span>-</span>
-          <span>-</span>
-        </div>
-          ) : (
-            productoOrdenados.map((p) => (
-              <div className="tabla-fila tabla-fila-extendida" key={p.id}>
-                <span className="producto-nombre">{p.nombre}</span>
-                <span className="codigo-barras-columna">
-                  <CodigoBarras valor={p.codigo_barras} />
-                </span>
+          <div className="iv-tbody">
+            {productoOrdenados.length === 0 ? (
+              <div className="iv-empty">No hay productos para mostrar</div>
+            ) : (
+              productoOrdenados.map((p) => (
+                <div className="iv-row" key={p.id}>
+                  <span className="iv-col-producto">
+                    <span className="iv-nombre">{p.nombre}</span>
+                    <span className="iv-producto-meta">
+                      {[p.codigo_barras, p.departamento, p.sucursal]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                    <CodigoBarras valor={p.codigo_barras} />
+                  </span>
 
-                <span>{p.vencimiento}</span>
+                  <span className="iv-venc">{p.vencimiento}</span>
 
-                <span>{p.cantidad} u.</span>
+                  <span className="iv-cant">{p.cantidad} u</span>
 
-                <span className={`badge badge-${p.estado}`}>
-                  {p.estado === "verde" && "OK"}
-                  {p.estado === "amarillo" && "Por vencer"}
-                  {p.estado === "rojo" && "Vencido"}
-                </span>
+                  <span className={`iv-estado iv-estado-${p.estado}`}>
+                    {p.estado === "verde" && "OK"}
+                    {p.estado === "amarillo" && "POR VENCER"}
+                    {p.estado === "rojo" && "VENCIDO"}
+                  </span>
 
-                <span className="acciones-grupo">
-                  <button
-                    className="btn-retirar"
-                    onClick={() => abrirModalRetiro(p)}
-                    disabled={p.cantidad <= 0}
-                  >
-                    Retirar
-                  </button>
+                  <span className="iv-acciones">
+                    <button
+                      className="iv-btn-retirar"
+                      onClick={() => abrirModalRetiro(p)}
+                      disabled={p.cantidad <= 0}
+                    >
+                      RETIRAR
+                    </button>
 
-                  <button
-                    className="btn-editar"
-                    onClick={() => abrirModalEditar(p)}
-                  >
-                    ✏️ Editar
-                  </button>
+                    <button
+                      className="iv-btn-editar"
+                      onClick={() => abrirModalEditar(p)}
+                    >
+                      EDITAR
+                    </button>
 
-                  <button
-                    className="btn-eliminar"
-                    onClick={() => abrirModalEliminar(p)}
-                  >
-                    🗑️ Eliminar
-                  </button>
-                </span>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Paginación */}
-        <div className="paginacion-container">
-          <div className="paginacion-info">
-            <span>
-              Mostrando {productos.length} de {totalRegistros} registros
-            </span>
+                    <button
+                      className="iv-btn-eliminar"
+                      onClick={() => abrirModalEliminar(p)}
+                    >
+                      ELIMINAR
+                    </button>
+                  </span>
+                </div>
+              ))
+            )}
           </div>
 
-          <div className="paginacion-controles">
-            <label>Mostrar</label>
-
-            <select
-              className="paginacion-select"
-              value={limite}
-              onChange={(e) => {
-                setLimite(Number(e.target.value));
-                setPagina(1);
-              }}
-            >
-              <option value={10}>10</option>
-              <option value={30}>30</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value={500}>500</option>
-            </select>
-
-            <span>por página</span>
-
-            <button
-              className="btn-paginacion"
-              onClick={() => setPagina(pagina - 1)}
-              disabled={pagina <= 1}
-            >
-              Anterior
-            </button>
-
-            <span className="paginacion-pagina">
-              Página {pagina} de {totalPaginas}
+          {/* Paginación */}
+          <div className="iv-footer">
+            <span className="iv-footer-info">
+              MOSTRANDO {productos.length} DE {totalRegistros} REGISTROS
             </span>
 
-            <button
-              className="btn-paginacion"
-              onClick={() => setPagina(pagina + 1)}
-              disabled={pagina >= totalPaginas}
-            >
-              Siguiente
-            </button>
+            <span className="iv-footer-controls">
+              <span className="iv-footer-label">POR PÁGINA</span>
+
+              <select
+                className="iv-select"
+                value={limite}
+                onChange={(e) => {
+                  setLimite(Number(e.target.value));
+                  setPagina(1);
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={30}>30</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={500}>500</option>
+              </select>
+
+              <button
+                className="iv-btn-pag"
+                onClick={() => setPagina(pagina - 1)}
+                disabled={pagina <= 1}
+              >
+                ANTERIOR
+              </button>
+
+              <span className="iv-footer-pagina">
+                {pagina} / {totalPaginas}
+              </span>
+
+              <button
+                className="iv-btn-pag iv-btn-pag-primary"
+                onClick={() => setPagina(pagina + 1)}
+                disabled={pagina >= totalPaginas}
+              >
+                SIGUIENTE
+              </button>
+            </span>
           </div>
         </div>
+      </div>
 
       {/* ── Modal: Retirar producto ── */}
       {modalRetiro && itemSeleccionado && (
@@ -1255,6 +1382,6 @@ export default function Inventario({ onNavegar, usuario }) {
           </div>
         </Modal>
       )}
-    </Layout>
+    </>
   );
 }
