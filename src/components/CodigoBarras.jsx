@@ -2,11 +2,7 @@ import Barcode from "react-barcode";
 import "./CodigoBarras.css";
 
 /*
-  Componente para mostrar un código de barras visual.
-
-  Recibe un valor numérico o texto desde el producto.
-  Usamos formato CODE128 porque acepta códigos numéricos y alfanuméricos,
-  ideal para códigos de prueba o códigos reales cargados en la base.
+  Código de barras visual compacto para mostrar en la tabla.
 */
 export default function CodigoBarras({ valor }) {
   if (!valor || String(valor).trim() === "") {
@@ -21,8 +17,8 @@ export default function CodigoBarras({ valor }) {
         value={codigo}
         format="CODE128"
         width={1}
-        height={34}
-        fontSize={10}
+        height={24}
+        fontSize={8}
         margin={0}
         displayValue={true}
       />

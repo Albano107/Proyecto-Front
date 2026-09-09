@@ -419,7 +419,7 @@
 .iv-thead {
   margin-top: 20px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 128px 92px 130px 250px;
+  grid-template-columns: minmax(0, 1.25fr) 135px 118px 80px 120px 245px;
   padding: 0 30px 8px;
   border-bottom: 2px solid var(--iv-border);
 }
@@ -473,10 +473,10 @@
 
 .iv-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 128px 92px 130px 250px;
+  grid-template-columns: minmax(0, 1.25fr) 135px 118px 80px 120px 245px;
   align-items: center;
   padding: 0 30px;
-  min-height: 52px;
+  min-height: 66px;
   border-bottom: 1px solid var(--iv-border-soft);
   transition: background 90ms linear;
 }
@@ -948,17 +948,34 @@
   flex-wrap: wrap;
 }
 
-.iv-col-producto .codigo-barras-box {
-  margin-top: 4px;
-  padding: 3px 4px;
-  max-width: 130px;
-  background: #fff;
+.iv-codigo-texto {
+  font: 600 9px "IBM Plex Mono", monospace;
+  letter-spacing: 0.08em;
+  color: var(--iv-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.iv-col-producto .codigo-barras-box svg {
-  display: block;
-  max-width: 100%;
-  height: auto;
+.iv-vencimiento-texto {
+  font: 800 9.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iv-vencimiento-verde {
+  color: #0ba852;
+}
+
+.iv-vencimiento-amarillo {
+  color: var(--iv-ink-amarillo);
+}
+
+.iv-vencimiento-rojo {
+  color: #e1222a;
 }
 
 @media (max-width: 768px) {
@@ -966,4 +983,29 @@
     flex-direction: column;
     align-items: flex-start;
   }
+}
+.iv-col-codigo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.iv-col-codigo .codigo-barras-box {
+  max-width: 118px;
+  overflow: hidden;
+}
+
+.iv-col-codigo .codigo-barras-box svg {
+  display: block;
+  width: 118px;
+  max-width: 118px;
+  height: 32px;
+}
+
+.iv-codigo-vacio {
+  font: 700 9px "IBM Plex Mono", monospace;
+  color: var(--iv-text-tertiary);
+  letter-spacing: 0.08em;
 }

@@ -170,6 +170,36 @@ function EscanerCamara({ onDetectado, onCerrar }) {
   );
 }
 
+// Calcula cuántos días faltan para el vencimiento.
+// Sirve para mostrar una explicación más clara junto al semáforo.
+function obtenerTextoVencimiento(fechaVencimiento) {
+  const hoy = new Date();
+  const vencimiento = new Date(fechaVencimiento + "T00:00:00");
+
+  hoy.setHours(0, 0, 0, 0);
+  vencimiento.setHours(0, 0, 0, 0);
+
+  const diferenciaMs = vencimiento - hoy;
+  const dias = Math.round(diferenciaMs / (1000 * 60 * 60 * 24));
+
+  if (dias < 0) {
+    const diasVencido = Math.abs(dias);
+    return diasVencido === 1
+      ? "Vencido hace 1 día"
+      : `Vencido hace ${diasVencido} días`;
+  }
+
+  if (dias === 0) {
+    return "Vence hoy";
+  }
+
+  if (dias === 1) {
+    return "Vence mañana";
+  }
+
+  return `Faltan ${dias} días`;
+}
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Inventario({ onNavegar, usuario, onLogout }) {
   const [sucursalActiva, setSucursalActiva] = useState(
@@ -1000,89 +1030,105 @@ export default function Inventario({ onNavegar, usuario, onLogout }) {
           )}
 
           {/* Tabla */}
-          <div className="iv-thead">
-            <button
-              className={`iv-th${orden.columna === "nombre" ? " activo" : ""}`}
-              onClick={() => toggleOrden("nombre")}
-            >
-              PRODUCTO {flecha("nombre")}
-            </button>
-            <button
-              className={`iv-th${
-                orden.columna === "vencimiento" ? " activo" : ""
-              }`}
-              onClick={() => toggleOrden("vencimiento")}
-            >
-              VENCIMIENTO {flecha("vencimiento")}
-            </button>
-            <button
-              className={`iv-th${orden.columna === "cantidad" ? " activo" : ""}`}
-              onClick={() => toggleOrden("cantidad")}
-            >
-              CANT {flecha("cantidad")}
-            </button>
-            <button
-              className={`iv-th${orden.columna === "estado" ? " activo" : ""}`}
-              onClick={() => toggleOrden("estado")}
-            >
-              ESTADO {flecha("estado")}
-            </button>
-            <span className="iv-th-static">ACCIONES</span>
-          </div>
+<div className="iv-thead">
+  <button
+    className={`iv-th${orden.columna === "nombre" ? " activo" : ""}`}
+    onClick={() => toggleOrden("nombre")}
+  >
+    PRODUCTO {flecha("nombre")}
+  </button>
 
-          <div className="iv-tbody">
-            {productoOrdenados.length === 0 ? (
-              <div className="iv-empty">No hay productos para mostrar</div>
-            ) : (
-              productoOrdenados.map((p) => (
-                <div className="iv-row" key={p.id}>
-                  <span className="iv-col-producto">
-                    <span className="iv-nombre">{p.nombre}</span>
-                    <span className="iv-producto-meta">
-                      {[p.codigo_barras, p.departamento, p.sucursal]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                    <CodigoBarras valor={p.codigo_barras} />
-                  </span>
+  <span className="iv-th-static">CÓDIGO</span>
 
-                  <span className="iv-venc">{p.vencimiento}</span>
+  <button
+    className={`iv-th${
+      orden.columna === "vencimiento" ? " activo" : ""
+    }`}
+    onClick={() => toggleOrden("vencimiento")}
+  >
+    VENCIMIENTO {flecha("vencimiento")}
+  </button>
 
-                  <span className="iv-cant">{p.cantidad} u</span>
+  <button
+    className={`iv-th${orden.columna === "cantidad" ? " activo" : ""}`}
+    onClick={() => toggleOrden("cantidad")}
+  >
+    CANT {flecha("cantidad")}
+  </button>
 
-                  <span className={`iv-estado iv-estado-${p.estado}`}>
-                    {p.estado === "verde" && "OK"}
-                    {p.estado === "amarillo" && "POR VENCER"}
-                    {p.estado === "rojo" && "VENCIDO"}
-                  </span>
+  <button
+    className={`iv-th${orden.columna === "estado" ? " activo" : ""}`}
+    onClick={() => toggleOrden("estado")}
+  >
+    ESTADO {flecha("estado")}
+  </button>
 
-                  <span className="iv-acciones">
-                    <button
-                      className="iv-btn-retirar"
-                      onClick={() => abrirModalRetiro(p)}
-                      disabled={p.cantidad <= 0}
-                    >
-                      RETIRAR
-                    </button>
+  <span className="iv-th-static">ACCIONES</span>
+</div>
 
-                    <button
-                      className="iv-btn-editar"
-                      onClick={() => abrirModalEditar(p)}
-                    >
-                      EDITAR
-                    </button>
+<div className="iv-tbody">
+  {productoOrdenados.length === 0 ? (
+    <div className="iv-empty">No hay productos para mostrar</div>
+  ) : (
+    productoOrdenados.map((p) => (
+      <div className="iv-row" key={p.id}>
+        <span className="iv-col-producto">
+          <span className="iv-nombre">{p.nombre}</span>
 
-                    <button
-                      className="iv-btn-eliminar"
-                      onClick={() => abrirModalEliminar(p)}
-                    >
-                      ELIMINAR
-                    </button>
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
+          <span className="iv-producto-meta">
+            {[p.departamento, p.sucursal].filter(Boolean).join(" · ")}
+          </span>
+
+          <span className={`iv-vencimiento-texto iv-vencimiento-${p.estado}`}>
+            {obtenerTextoVencimiento(p.vencimiento)}
+          </span>
+        </span>
+
+        <span className="iv-col-codigo">
+          {p.codigo_barras ? (
+            <CodigoBarras valor={p.codigo_barras} />
+          ) : (
+            <span className="iv-codigo-vacio">SIN CÓDIGO</span>
+          )}
+        </span>
+
+        <span className="iv-venc">{p.vencimiento}</span>
+
+        <span className="iv-cant">{p.cantidad} u</span>
+
+        <span className={`iv-estado iv-estado-${p.estado}`}>
+          {p.estado === "verde" && "OK"}
+          {p.estado === "amarillo" && "POR VENCER"}
+          {p.estado === "rojo" && "VENCIDO"}
+        </span>
+
+        <span className="iv-acciones">
+          <button
+            className="iv-btn-retirar"
+            onClick={() => abrirModalRetiro(p)}
+            disabled={p.cantidad <= 0}
+          >
+            RETIRAR
+          </button>
+
+          <button
+            className="iv-btn-editar"
+            onClick={() => abrirModalEditar(p)}
+          >
+            EDITAR
+          </button>
+
+          <button
+            className="iv-btn-eliminar"
+            onClick={() => abrirModalEliminar(p)}
+          >
+            ELIMINAR
+          </button>
+        </span>
+      </div>
+    ))
+  )}
+</div>
 
           {/* Paginación */}
           <div className="iv-footer">
