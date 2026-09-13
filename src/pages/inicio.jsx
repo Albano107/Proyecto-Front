@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { id: "inicio", label: "INICIO" },
   { id: "inventario", label: "INVENTARIO" },
   { id: "reportes", label: "REPORTES" },
-  { id: "usuarios", label: "USUARIOS", soloAdmin: true },
+  { id: "administracion", label: "ADMINISTRACIÓN", soloAdmin: true },
 ];
 
 const DIAS = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
