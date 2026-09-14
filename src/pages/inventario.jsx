@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { id: "inicio", label: "INICIO" },
   { id: "inventario", label: "INVENTARIO" },
   { id: "reportes", label: "REPORTES" },
-  { id: "usuarios", label: "USUARIOS", soloAdmin: true },
+  { id: "administracion", label: "ADMINISTRACIÓN", soloAdmin: true },
 ];
 
 // ─── AutoComplete ─────────────────────────────────────────────────────────────
@@ -522,6 +522,7 @@ export default function Inventario({ onNavegar, usuario, onLogout }) {
         id_sucursal: Number(id_sucursal),
         fecha_vencimiento,
         cantidad: Number(cantidad),
+        id_usuario: usuario?.id_usuario || null,
       });
 
       setModalNuevo(false);
@@ -572,6 +573,7 @@ export default function Inventario({ onNavegar, usuario, onLogout }) {
       await axios.put(`/inventario/${itemSeleccionado.id}`, {
         fecha_vencimiento,
         cantidad: Number(cantidad),
+        id_usuario: usuario?.id_usuario || null,
       });
 
       setModalEditar(false);
@@ -593,7 +595,9 @@ export default function Inventario({ onNavegar, usuario, onLogout }) {
     setCargando(true);
 
     try {
-      await axios.delete(`/inventario/${itemSeleccionado.id}`);
+      await axios.delete(`/inventario/${itemSeleccionado.id}`, {
+        data: { id_usuario: usuario?.id_usuario || null },
+      });
 
       setModalEliminar(false);
       cargarInventario();
@@ -1176,7 +1180,10 @@ export default function Inventario({ onNavegar, usuario, onLogout }) {
             </span>
           </div>
         </div>
-      </div>
+
+      {/* Los modales van dentro de .iv-shell (no como hermanos), así
+          heredan las variables de tema --iv-* definidas ahí: si quedan
+          afuera, todo lo que use var(--iv-*) resuelve a nada. */}
 
       {/* ── Modal: Retirar producto ── */}
       {modalRetiro && itemSeleccionado && (
@@ -1428,6 +1435,7 @@ export default function Inventario({ onNavegar, usuario, onLogout }) {
           </div>
         </Modal>
       )}
+      </div>
     </>
   );
 }

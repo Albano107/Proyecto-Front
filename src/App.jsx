@@ -3,7 +3,7 @@ import Login from "./pages/login";
 import Inicio from "./pages/inicio";
 import Inventario from "./pages/inventario";
 import Reportes from "./pages/reportes";
-import Usuarios from "./pages/usuarios";
+import Administracion from "./pages/administracion";
 
 function App() {
   const [pagina, setPagina] = useState("login");
@@ -26,8 +26,8 @@ function App() {
     return <Inventario usuario={usuario} onNavegar={setPagina} onLogout={handleLogout} />;
   if (pagina === "reportes")
     return <Reportes usuario={usuario} onNavegar={setPagina} onLogout={handleLogout} />;
-  if (pagina === "usuarios")
-    return <Usuarios usuario={usuario} onNavegar={setPagina} onLogout={handleLogout} />;
+  if (pagina === "administracion")
+    return <Administracion usuario={usuario} onNavegar={setPagina} onLogout={handleLogout} />;
   return <Login onLogin={handleLogin} />;
 }
 export default App;

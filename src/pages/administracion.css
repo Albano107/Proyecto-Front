@@ -1,0 +1,783 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;600;700&display=swap');
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Administración — shell (sidebar + main), scoped under .ad-shell so nothing
+   here leaks into the light theme used by the other pages.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.ad-shell {
+  /* Que los controles nativos (flecha de <select>, etc.) rendericen su
+     variante clara/oscura acorde al tema en vez de quedar siempre oscuros. */
+  color-scheme: dark;
+
+  /* ── Paleta (modo oscuro por defecto) ── */
+  --ad-bg: #000;
+  --ad-bg-sidebar: #000;
+  --ad-border: #1f1f1f;
+  --ad-border-soft: #131313;
+  --ad-surface: #1a1a1a;
+  --ad-hover: #0d0d0d;
+  --ad-text: #fff;
+  --ad-text-secondary: #8a8a8a;
+  --ad-text-tertiary: #5a5a5a;
+  --ad-text-mono: #c9c9c9;
+  --ad-ink-amarillo: #f1bd30;
+  --ad-invert-bg: #fff;
+  --ad-invert-text: #000;
+  --ad-scroll-track: #0a0a0a;
+  --ad-scroll-thumb: #333;
+  --ad-scroll-thumb-hover: #444;
+  --ad-shadow: none;
+
+  display: flex;
+  min-height: 100vh;
+  background: var(--ad-bg);
+  font-family: "Archivo", system-ui, sans-serif;
+  overflow-x: auto;
+}
+
+.ad-shell[data-tema="claro"] {
+  color-scheme: light;
+  --ad-bg: #ffffff;
+  --ad-bg-sidebar: #f5f6f8;
+  --ad-border: #dee1e5;
+  --ad-border-soft: #ececee;
+  --ad-surface: #eef0f3;
+  --ad-hover: #e6e9ec;
+  --ad-text: #14171c;
+  --ad-text-secondary: #5b6068;
+  --ad-text-tertiary: #8d929a;
+  --ad-text-mono: #33363b;
+  --ad-ink-amarillo: #b8790a;
+  --ad-invert-bg: #14171c;
+  --ad-invert-text: #ffffff;
+  --ad-scroll-track: #eef0f3;
+  --ad-scroll-thumb: #cbd0d6;
+  --ad-scroll-thumb-hover: #b2b8c0;
+  --ad-shadow: 0 1px 2px rgba(20, 23, 28, 0.05);
+}
+
+/* ── Sidebar ── */
+.ad-sidebar {
+  width: 212px;
+  flex: none;
+  background: var(--ad-bg-sidebar);
+  border-right: 2px solid var(--ad-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-sidebar-top {
+  padding: 26px 20px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ad-logo {
+  font: 900 21px/1 "Archivo", sans-serif;
+  letter-spacing: -0.04em;
+  color: var(--ad-text);
+}
+
+.ad-sublogo {
+  font: 700 9.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--ad-text-secondary);
+}
+
+.ad-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-nav-item {
+  padding: 14px 20px;
+  font: 800 11.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.14em;
+  color: var(--ad-text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ad-nav-item:hover {
+  color: var(--ad-text);
+  background: var(--ad-hover);
+}
+
+.ad-nav-item.activo {
+  font-weight: 900;
+  color: #000;
+  background: #f1bd30;
+}
+
+.ad-nav-item.activo:hover {
+  color: #000;
+  background: #f1bd30;
+}
+
+/* ── Sub-navegación (Usuarios / Auditorías) ── */
+.ad-subnav {
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid var(--ad-border);
+  margin: 4px 0 0 20px;
+}
+
+.ad-subnav-item {
+  padding: 9px 14px;
+  font: 900 10px/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--ad-text-secondary);
+  cursor: pointer;
+}
+
+.ad-subnav-item:hover {
+  color: var(--ad-text);
+}
+
+.ad-subnav-item.activo {
+  color: var(--ad-text);
+}
+
+/* ── Selector de tema ── */
+.ad-theme-switch {
+  margin-top: auto;
+  display: flex;
+  border-top: 2px solid var(--ad-border);
+}
+
+.ad-theme-btn {
+  flex: 1;
+  padding: 12px 8px;
+  background: transparent;
+  color: var(--ad-text-secondary);
+  font: 800 9.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
+  cursor: pointer;
+}
+
+.ad-theme-btn:hover {
+  color: var(--ad-text);
+  background: var(--ad-hover);
+}
+
+.ad-theme-btn.activo {
+  background: var(--ad-invert-bg);
+  color: var(--ad-invert-text);
+}
+
+.ad-sidebar-footer {
+  border-top: 2px solid var(--ad-border);
+  position: relative;
+}
+
+.ad-user-btn {
+  width: 100%;
+  padding: 20px;
+  background: none;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.ad-user-btn:hover {
+  background: var(--ad-hover);
+}
+
+.ad-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ad-user-name {
+  font: 800 11px/1.2 "Archivo", sans-serif;
+  color: var(--ad-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ad-user-role {
+  font: 700 9.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+  color: var(--ad-text-secondary);
+}
+
+.ad-user-caret {
+  flex: none;
+  color: var(--ad-text-tertiary);
+  font-size: 10px;
+}
+
+.ad-user-menu {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(100% + 6px);
+  background: var(--ad-hover);
+  border: 1px solid var(--ad-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+
+.ad-user-menu-item {
+  width: 100%;
+  padding: 12px 14px;
+  background: none;
+  border: 0;
+  color: #e1222a;
+  font: 900 10.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  text-align: left;
+}
+
+.ad-user-menu-item:hover {
+  background: #e1222a;
+  color: #fff;
+}
+
+/* ── Main ── */
+.ad-main {
+  flex: 1;
+  min-width: 1060px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-topbar {
+  padding: 26px 30px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ad-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ad-title {
+  font: 900 52px/0.92 "Archivo", sans-serif;
+  letter-spacing: -0.05em;
+  color: var(--ad-text);
+}
+
+.ad-subtitle {
+  font: 700 11px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--ad-text-secondary);
+}
+
+/* ── Toggle Usuarios / Auditorías ── */
+.ad-maintabs {
+  display: flex;
+  border: 2px solid var(--ad-border);
+  width: fit-content;
+}
+
+.ad-maintab {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--ad-text-secondary);
+  font: 900 11px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
+  cursor: pointer;
+}
+
+.ad-maintab:hover {
+  color: var(--ad-text);
+}
+
+.ad-maintab.activo {
+  background: var(--ad-invert-bg);
+  color: var(--ad-invert-text);
+}
+
+.ad-maintab.activo:hover {
+  color: var(--ad-invert-text);
+}
+
+/* ── Stats grandes ── */
+.ad-stats {
+  padding: 0 30px 6px;
+  display: flex;
+  align-items: flex-end;
+  gap: 44px;
+  flex-wrap: wrap;
+}
+
+.ad-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ad-stat-num {
+  font: 900 36px/0.9 "Archivo", sans-serif;
+  letter-spacing: -0.055em;
+  color: var(--ad-text);
+}
+
+.ad-stat-label {
+  font: 800 11px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--ad-text-secondary);
+}
+
+.ad-stat-grande .ad-stat-num {
+  font-size: 68px;
+}
+
+.ad-stat-media .ad-stat-num {
+  font-size: 48px;
+}
+
+.ad-stat-verde .ad-stat-num,
+.ad-stat-verde .ad-stat-label {
+  color: #0ba852;
+  font-weight: 900;
+}
+
+.ad-stat-rojo .ad-stat-num,
+.ad-stat-rojo .ad-stat-label {
+  color: #e1222a;
+  font-weight: 900;
+}
+
+.ad-stat-neutro .ad-stat-num {
+  color: var(--ad-text-secondary);
+}
+
+.ad-ultimo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ad-ultimo-label {
+  font: 700 10.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--ad-text-secondary);
+}
+
+.ad-ultimo-valor {
+  font: 900 22px/1.05 "Archivo", sans-serif;
+  letter-spacing: -0.03em;
+  color: var(--ad-ink-amarillo);
+}
+
+.ad-ultimo-hora {
+  font: 600 11px "IBM Plex Mono", monospace;
+  letter-spacing: 0.1em;
+  color: var(--ad-text-secondary);
+}
+
+/* ── Filtros ── */
+.ad-filtros {
+  margin-top: 18px;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ad-filtro-btn {
+  padding: 8px 14px;
+  background: var(--ad-surface);
+  color: var(--ad-text-secondary);
+  font: 800 10.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
+  cursor: pointer;
+}
+
+.ad-filtro-btn:hover {
+  color: var(--ad-text);
+}
+
+.ad-filtro-btn.verde {
+  color: #0ba852;
+}
+.ad-filtro-btn.verde:hover,
+.ad-filtro-btn.verde.activo {
+  background: #0ba852;
+  color: #000;
+}
+
+.ad-filtro-btn.amarillo {
+  color: var(--ad-ink-amarillo);
+}
+.ad-filtro-btn.amarillo:hover,
+.ad-filtro-btn.amarillo.activo {
+  background: #f1bd30;
+  color: #000;
+}
+
+.ad-filtro-btn.rojo {
+  color: #e1222a;
+}
+.ad-filtro-btn.rojo:hover,
+.ad-filtro-btn.rojo.activo {
+  background: #e1222a;
+  color: #fff;
+}
+
+.ad-filtro-btn.activo {
+  background: var(--ad-invert-bg);
+  color: var(--ad-invert-text);
+}
+
+.ad-filtros-auditoria {
+  position: relative;
+}
+
+.ad-filtros-derecha {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ad-rango {
+  padding: 8px 12px;
+  background: var(--ad-surface);
+  font: 600 11px "IBM Plex Mono", monospace;
+  color: var(--ad-text);
+}
+
+.ad-btn-exportar {
+  padding: 8px 14px;
+  background: var(--ad-hover);
+  color: var(--ad-text-secondary);
+  font: 800 10.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
+  cursor: pointer;
+}
+
+.ad-btn-exportar:hover {
+  color: var(--ad-text);
+}
+
+/* ── Tabla de usuarios ── */
+.ad-thead {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.6fr) 150px 130px 170px;
+  padding: 0 30px 8px;
+  border-bottom: 2px solid var(--ad-border);
+  font: 800 10px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--ad-text-secondary);
+}
+
+.ad-thead span:first-child {
+  color: var(--ad-text);
+}
+
+.ad-tbody {
+  display: flex;
+  flex-direction: column;
+  scrollbar-color: var(--ad-scroll-thumb) var(--ad-scroll-track);
+}
+
+.ad-tbody::-webkit-scrollbar {
+  width: 10px;
+}
+.ad-tbody::-webkit-scrollbar-track {
+  background: var(--ad-scroll-track);
+}
+.ad-tbody::-webkit-scrollbar-thumb {
+  background: var(--ad-scroll-thumb);
+}
+.ad-tbody::-webkit-scrollbar-thumb:hover {
+  background: var(--ad-scroll-thumb-hover);
+}
+
+.ad-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.6fr) 150px 130px 170px;
+  align-items: center;
+  padding: 0 30px;
+  min-height: 54px;
+  border-bottom: 1px solid var(--ad-border-soft);
+  transition: background 90ms linear;
+}
+
+.ad-row:hover {
+  background: var(--ad-hover);
+}
+
+.ad-col-usuario {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ad-marca {
+  width: 4px;
+  height: 28px;
+  flex: none;
+  background: #2a2a2a;
+}
+
+.ad-marca.verde {
+  background: #0ba852;
+}
+
+.ad-marca.amarillo {
+  background: #f1bd30;
+}
+
+.ad-nombre {
+  font: 800 14px/1.15 "Archivo", sans-serif;
+  color: var(--ad-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ad-nombre.inactivo {
+  color: var(--ad-text-secondary);
+}
+
+.ad-email {
+  font: 400 12px "IBM Plex Mono", monospace;
+  color: var(--ad-text-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ad-rol {
+  font: 800 11px/1 "Archivo", sans-serif;
+  letter-spacing: 0.12em;
+  color: var(--ad-text-mono);
+}
+
+.ad-rol.admin {
+  color: var(--ad-ink-amarillo);
+}
+
+.ad-estado {
+  justify-self: start;
+  padding: 6px 11px;
+  font: 900 10px/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+}
+
+.ad-estado-activo {
+  background: #0ba852;
+  color: #000;
+}
+
+.ad-estado-inactivo {
+  background: var(--ad-surface);
+  color: var(--ad-text-mono);
+}
+
+.ad-btn-accion {
+  padding: 7px 12px;
+  font: 900 9.5px/1 "Archivo", sans-serif;
+  letter-spacing: 0.1em;
+  border: 0;
+  cursor: pointer;
+}
+
+.ad-btn-accion:hover {
+  filter: brightness(1.15);
+}
+
+.ad-btn-baja {
+  background: #e1222a;
+  color: #fff;
+}
+
+.ad-btn-alta {
+  background: #0ba852;
+  color: #000;
+}
+
+.ad-empty {
+  padding: 24px 30px;
+  font: 400 12.5px "IBM Plex Mono", monospace;
+  color: var(--ad-text-tertiary);
+}
+
+/* ── Tabla de auditorías ── */
+.ad-aud-thead {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 96px 150px 160px minmax(0, 1fr) 120px;
+  padding: 0 30px 8px;
+  border-bottom: 2px solid var(--ad-border);
+  font: 800 10px "IBM Plex Mono", monospace;
+  letter-spacing: 0.14em;
+  color: var(--ad-text-secondary);
+}
+
+.ad-aud-thead span:first-child {
+  color: var(--ad-text);
+}
+
+.ad-dia-header {
+  padding: 0 30px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ad-hover);
+  border-bottom: 1px solid var(--ad-border);
+}
+
+.ad-dia-fecha {
+  font: 900 10.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.16em;
+  color: var(--ad-text);
+}
+
+.ad-dia-resumen {
+  font: 400 10px "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+  color: var(--ad-text-secondary);
+}
+
+.ad-evento-row {
+  display: grid;
+  grid-template-columns: 96px 150px 160px minmax(0, 1fr) 120px;
+  align-items: center;
+  padding: 0 30px;
+  min-height: 52px;
+  border-bottom: 1px solid var(--ad-border-soft);
+  transition: background 90ms linear;
+}
+
+.ad-evento-row:hover {
+  background: var(--ad-hover);
+}
+
+.ad-evento-hora {
+  font: 600 12.5px "IBM Plex Mono", monospace;
+  color: var(--ad-text-mono);
+}
+
+.ad-evento-usuario-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ad-evento-marca {
+  width: 4px;
+  height: 26px;
+  flex: none;
+  background: var(--ad-surface);
+}
+
+.ad-evento-usuario-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ad-evento-nombre {
+  font: 800 13px/1.15 "Archivo", sans-serif;
+  color: var(--ad-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ad-evento-rol {
+  font: 400 9px "IBM Plex Mono", monospace;
+  letter-spacing: 0.1em;
+  color: var(--ad-text-secondary);
+}
+
+.ad-evento-accion {
+  justify-self: start;
+  padding: 6px 11px;
+  font: 900 10px/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+  background: var(--ad-surface);
+  color: var(--ad-text-mono);
+}
+
+.ad-evento-accion.verde {
+  background: #0ba852;
+  color: #000;
+}
+.ad-evento-accion.amarillo {
+  background: #f1bd30;
+  color: #000;
+}
+.ad-evento-accion.rojo {
+  background: #e1222a;
+  color: #fff;
+}
+.ad-evento-accion.neutro-fuerte {
+  background: #2f2f2f;
+  color: #fff;
+}
+
+.ad-evento-marca.verde {
+  background: #0ba852;
+}
+.ad-evento-marca.amarillo {
+  background: #f1bd30;
+}
+.ad-evento-marca.rojo {
+  background: #e1222a;
+}
+.ad-evento-marca.neutro-fuerte {
+  background: #2f2f2f;
+}
+
+.ad-evento-detalle {
+  font: 400 12.5px/1.35 "IBM Plex Mono", monospace;
+  color: var(--ad-text-mono);
+  min-width: 0;
+}
+
+.ad-evento-sucursal {
+  font: 600 11.5px "IBM Plex Mono", monospace;
+  letter-spacing: 0.08em;
+  color: var(--ad-text-secondary);
+}
+
+/* ── Footer ── */
+.ad-footer {
+  margin-top: auto;
+  padding: 16px 30px;
+  border-top: 2px solid var(--ad-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ad-footer-info,
+.ad-footer-brand {
+  font: 400 11px "IBM Plex Mono", monospace;
+  letter-spacing: 0.08em;
+  color: var(--ad-text-secondary);
+}
