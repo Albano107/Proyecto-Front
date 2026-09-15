@@ -6,11 +6,6 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 .iv-shell {
-  /* Que los controles nativos (ícono de <input type="date">, flecha de
-     <select>, spinners de number) rendericen su variante clara/oscura
-     acorde al tema en vez de quedar siempre oscuros por defecto. */
-  color-scheme: dark;
-
   /* ── Paleta (modo oscuro por defecto) ── */
   --iv-bg: #000;
   --iv-bg-sidebar: #000;
@@ -43,7 +38,6 @@
    escala de grises plana) y una sidebar apenas distinta del contenido para
    dar profundidad, igual que el negro plano hace en el oscuro. */
 .iv-shell[data-tema="claro"] {
-  color-scheme: light;
   --iv-bg: #ffffff;
   --iv-bg-sidebar: #f5f6f8;
   --iv-border: #dee1e5;
@@ -425,7 +419,7 @@
 .iv-thead {
   margin-top: 20px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 128px 92px 130px 250px;
+  grid-template-columns: minmax(0, 1.25fr) 135px 118px 80px 120px 245px;
   padding: 0 30px 8px;
   border-bottom: 2px solid var(--iv-border);
 }
@@ -479,10 +473,10 @@
 
 .iv-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 128px 92px 130px 250px;
+  grid-template-columns: minmax(0, 1.25fr) 135px 118px 80px 120px 245px;
   align-items: center;
   padding: 0 30px;
-  min-height: 52px;
+  min-height: 66px;
   border-bottom: 1px solid var(--iv-border-soft);
   transition: background 90ms linear;
 }
@@ -680,16 +674,73 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   Modales / formularios / autocomplete — mismo lenguaje visual que el resto
-   de .iv-shell: esquinas rectas, tipografías Archivo/IBM Plex Mono, colores
-   por variable (siguen el tema oscuro/claro) en vez de hex fijos.
+   Modales / formularios / autocomplete — sin cambios de diseño, se reusan
+   tal cual para Nuevo, Editar, Eliminar y Retirar.
    ══════════════════════════════════════════════════════════════════════════ */
+
+/* Botón eliminar de confirmación (modal) */
+.btn-eliminar-confirm {
+  background-color: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-eliminar-confirm:hover {
+  background-color: #c53030;
+}
+.btn-eliminar-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Botón cancelar */
+.btn-cancelar {
+  background-color: transparent;
+  color: #666;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-cancelar:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+/* Botón guardar/confirmar (modal) */
+.btn-agregar {
+  background-color: #059669;
+  color: white;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.btn-agregar:hover {
+  background-color: #047857;
+}
+
+.btn-agregar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* ── Modal overlay ── */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -699,12 +750,11 @@
 
 /* Caja del modal */
 .modal-caja {
-  background: var(--iv-bg-sidebar);
-  border: 2px solid var(--iv-border);
+  background: #fff;
+  border-radius: 12px;
   width: 100%;
   max-width: 480px;
-  max-height: calc(100vh - 32px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -715,100 +765,86 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 16px 22px;
-  background: var(--iv-surface);
-  border-bottom: 2px solid var(--iv-border);
-  flex: none;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e8e8e8;
 }
 .modal-titulo {
-  font: 900 15px/1.3 "Archivo", sans-serif;
-  letter-spacing: -0.01em;
-  color: var(--iv-text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a2e;
   margin: 0;
 }
 .modal-cerrar {
-  flex: none;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: none;
-  border: 0;
-  font-size: 1rem;
-  color: var(--iv-text-secondary);
+  border: none;
+  font-size: 1.2rem;
+  color: #888;
   cursor: pointer;
   line-height: 1;
+  padding: 0 4px;
 }
 .modal-cerrar:hover {
-  color: var(--iv-text);
-  background: var(--iv-hover);
+  color: #333;
 }
 
 /* Body del modal */
 .modal-body {
-  padding: 20px 22px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  overflow-y: auto;
 }
 
 /* Texto de confirmación */
 .modal-texto-confirmar {
-  font: 400 13px/1.55 "Archivo", sans-serif;
-  color: var(--iv-text-secondary);
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.5;
   margin: 0;
-}
-.modal-texto-confirmar strong {
-  color: var(--iv-text);
 }
 
 /* Footer del modal */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 14px 22px;
-  background: var(--iv-surface);
-  border-top: 2px solid var(--iv-border);
-  flex: none;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e8e8e8;
 }
 
 /* ── Formulario ── */
 .form-grupo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 .form-label {
-  font: 700 10px "IBM Plex Mono", monospace;
-  letter-spacing: 0.1em;
-  color: var(--iv-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #555;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 .form-input {
-  border: 0;
-  padding: 11px 12px;
-  font: 400 12.5px "IBM Plex Mono", monospace;
-  color: var(--iv-text);
-  background: var(--iv-surface);
-  box-shadow: var(--iv-shadow);
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  color: #222;
+  background: #fafafa;
+  transition: border 0.2s;
   outline: none;
   width: 100%;
   box-sizing: border-box;
 }
-.form-input::placeholder {
-  color: var(--iv-placeholder);
-}
 .form-input:focus {
-  box-shadow: inset 0 -3px 0 #f1bd30;
+  border-color: #5a7af0;
+  background: #fff;
 }
 .form-error {
-  font: 700 11px "IBM Plex Mono", monospace;
-  letter-spacing: 0.02em;
-  color: #e1222a;
+  font-size: 0.83rem;
+  color: #e53e3e;
+  font-weight: 600;
   margin: 0;
 }
 
@@ -822,9 +858,10 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--iv-hover);
-  border: 1px solid var(--iv-border);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
   max-height: 200px;
   overflow-y: auto;
   z-index: 2000;
@@ -834,102 +871,141 @@
 }
 
 .autocomplete-item {
-  padding: 10px 14px;
-  font: 400 12px "IBM Plex Mono", monospace;
-  color: var(--iv-text);
+  padding: 9px 14px;
+  font-size: 0.88rem;
+  color: #222;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 .autocomplete-item:hover,
 .autocomplete-item--activo {
-  background: var(--iv-invert-bg);
-  color: var(--iv-invert-text);
+  background: #f0f4ff;
+  color: #3a5bd9;
 }
 
 .autocomplete-item--vacio {
-  color: var(--iv-text-tertiary);
+  color: #aaa;
   cursor: default;
   font-style: italic;
 }
 .autocomplete-item--vacio:hover {
   background: transparent;
-  color: var(--iv-text-tertiary);
+  color: #aaa;
 }
 
 /* ── Retiro ── */
 .retiro-info {
-  background: var(--iv-surface);
-  box-shadow: var(--iv-shadow);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 14px 16px;
-  margin-bottom: 2px;
+  margin-bottom: 16px;
 }
 
 .retiro-producto {
-  font: 900 15px/1.3 "Archivo", sans-serif;
-  color: var(--iv-text);
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
   margin-bottom: 8px;
 }
 
 .retiro-detalle {
-  font: 400 12px "IBM Plex Mono", monospace;
-  color: var(--iv-text-secondary);
+  font-size: 14px;
+  color: #475569;
   margin: 4px 0;
-}
-.retiro-detalle strong {
-  color: var(--iv-text);
 }
 
 /* ── Lector de cámara ── */
 .lector-camara {
   width: 100%;
   min-height: 300px;
-  background: var(--iv-surface);
+  border-radius: 8px;
   overflow: hidden;
 }
 
-/* ── Botones del modal ── */
-.btn-cancelar,
-.btn-agregar,
-.btn-eliminar-confirm {
-  padding: 11px 20px;
-  font: 900 10.5px/1 "Archivo", sans-serif;
+/* ── Filtro activo / reporte PDF ── */
+.iv-filtro-reporte {
+  margin: 12px 30px 0;
+  padding: 12px 14px;
+  background: rgba(241, 189, 48, 0.12);
+  border: 1px solid rgba(241, 189, 48, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.iv-filtro-reporte-texto {
+  font: 900 10.5px/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.12em;
+  color: var(--iv-ink-amarillo);
+}
+
+.iv-filtro-reporte-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.iv-codigo-texto {
+  font: 600 9px "IBM Plex Mono", monospace;
+  letter-spacing: 0.08em;
+  color: var(--iv-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iv-vencimiento-texto {
+  font: 800 9.5px "IBM Plex Mono", monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 0;
-  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.btn-cancelar {
-  background: var(--iv-surface);
-  color: var(--iv-text-secondary);
-}
-.btn-cancelar:hover {
-  background: var(--iv-hover);
-  color: var(--iv-text);
+.iv-vencimiento-verde {
+  color: #0ba852;
 }
 
-.btn-agregar {
-  background: #0ba852;
-  color: #000;
-}
-.btn-agregar:hover {
-  filter: brightness(1.08);
-}
-.btn-agregar:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  filter: none;
+.iv-vencimiento-amarillo {
+  color: var(--iv-ink-amarillo);
 }
 
-.btn-eliminar-confirm {
-  background: #e1222a;
-  color: #fff;
+.iv-vencimiento-rojo {
+  color: #e1222a;
 }
-.btn-eliminar-confirm:hover {
-  filter: brightness(1.1);
+
+@media (max-width: 768px) {
+  .iv-filtro-reporte {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
-.btn-eliminar-confirm:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  filter: none;
+.iv-col-codigo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.iv-col-codigo .codigo-barras-box {
+  max-width: 118px;
+  overflow: hidden;
+}
+
+.iv-col-codigo .codigo-barras-box svg {
+  display: block;
+  width: 118px;
+  max-width: 118px;
+  height: 32px;
+}
+
+.iv-codigo-vacio {
+  font: 700 9px "IBM Plex Mono", monospace;
+  color: var(--iv-text-tertiary);
+  letter-spacing: 0.08em;
 }
