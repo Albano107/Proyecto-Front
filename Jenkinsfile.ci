@@ -1,0 +1,27 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Instalar dependencias') {
+            steps {
+                bat 'npm install'
+            }
+        }
+
+        stage('Compilar frontend') {
+            steps {
+                bat 'npm run build'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Validacion frontend correcta.'
+        }
+
+        failure {
+            echo 'La validacion frontend fallo.'
+        }
+    }
+}
